@@ -82,8 +82,8 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showStable, setShowStable] = useState(true);
-  const [showRc, setShowRc] = useState(true);
-  const [showPre, setShowPre] = useState(true);
+  const [showRc, setShowRc] = useState(false);
+  const [showPre, setShowPre] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [error, setError] = useState<string | null>(null);
   const maxRetries = 3;
@@ -153,14 +153,28 @@ export default function Home() {
     void fetchPlugins();
   }, [fetchPlugins]);
 
+  const handleStableToggle = () => {
+    setShowStable((prev) => !prev);
+  };
+
+  const handleRcToggle = () => {
+    setShowRc((prev) => !prev);
+  };
+
+  const handlePreToggle = () => {
+    setShowPre((prev) => !prev);
+  };
+
   const filterPlugins = useCallback(
     (term: string) => {
       let filtered = plugins.filter(
         (plugin) =>
-          (plugin.name.toLowerCase().includes(term) ||
-            plugin.description.zh_tw.toLowerCase().includes(term) ||
+          (plugin.name.toLowerCase().includes(term.toLowerCase()) ||
+            plugin.description.zh_tw
+              .toLowerCase()
+              .includes(term.toLowerCase()) ||
             plugin.author.some((author) =>
-              author.toLowerCase().includes(term)
+              author.toLowerCase().includes(term.toLowerCase())
             )) &&
           ((showStable && plugin.status === "stable") ||
             (showRc && plugin.status === "rc") ||
@@ -176,6 +190,10 @@ export default function Home() {
     },
     [plugins, showStable, showRc, showPre, sortOrder]
   );
+
+  useEffect(() => {
+    filterPlugins(searchTerm);
+  }, [filterPlugins, searchTerm, showStable, showRc, showPre]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value.toLowerCase();
@@ -309,10 +327,7 @@ export default function Home() {
 
         <div className="flex gap-2">
           <button
-            onClick={() => {
-              setShowStable(!showStable);
-              filterPlugins(searchTerm);
-            }}
+            onClick={handleStableToggle}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showStable
                 ? "bg-blue-500 text-white hover:bg-blue-600"
@@ -321,11 +336,9 @@ export default function Home() {
           >
             穩定版
           </button>
+
           <button
-            onClick={() => {
-              setShowRc(!showRc);
-              filterPlugins(searchTerm);
-            }}
+            onClick={handleRcToggle}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showRc
                 ? "bg-blue-500 text-white hover:bg-blue-600"
@@ -334,11 +347,9 @@ export default function Home() {
           >
             發布候選
           </button>
+
           <button
-            onClick={() => {
-              setShowPre(!showPre);
-              filterPlugins(searchTerm);
-            }}
+            onClick={handlePreToggle}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showPre
                 ? "bg-blue-500 text-white hover:bg-blue-600"
