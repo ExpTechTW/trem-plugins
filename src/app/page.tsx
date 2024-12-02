@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   Download,
   GitFork,
-  Clock,
+  Tag,
   Search,
   SortAsc,
   Grid,
@@ -14,8 +13,26 @@ import {
   Moon,
   Sun,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
+
+interface Release {
+  tag_name: string;
+  name: string;
+  downloads: number;
+  published_at: string;
+}
+
+interface RepositoryStats {
+  name: string;
+  full_name: string;
+  releases: {
+    total_count: number;
+    total_downloads: number;
+    releases: Release[];
+  };
+  updated_at: string;
+}
 
 interface Plugin {
   name: string;
@@ -28,12 +45,32 @@ interface Plugin {
     [key: string]: string;
   };
   link: string;
-  downloads: number;
-  lastUpdated: string;
-  category?: string;
-  rating?: number;
-  status: 'stable' | 'beta' | 'alpha';
+  status: 'stable' | 'rc' | 'pre';
 }
+
+const getPluginStatus = (version: string): 'stable' | 'rc' | 'pre' => {
+  if (version.includes('-pre')) return 'pre';
+  if (version.includes('-rc')) return 'rc';
+  return 'stable';
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'stable': return 'bg-green-500';
+    case 'rc': return 'bg-yellow-500';
+    case 'pre': return 'bg-red-500';
+    default: return 'bg-gray-500';
+  }
+};
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'stable': return '穩定版';
+    case 'rc': return '發布候選';
+    case 'pre': return '預覽版';
+    default: return status;
+  }
+};
 
 export default function Home() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
@@ -44,12 +81,12 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showStable, setShowStable] = useState(true);
-  const [showBeta, setShowBeta] = useState(true);
-  const [showAlpha, setShowAlpha] = useState(true);
+  const [showRc, setShowRc] = useState(true);
+  const [showPre, setShowPre] = useState(true);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [downloadTrends, setDownloadTrends] = useState([]);
+  const [repositoryStats, setRepositoryStats] = useState<{ [key: string]: RepositoryStats }>({});
   const maxRetries = 3;
 
   useEffect(() => {
@@ -58,19 +95,20 @@ export default function Home() {
 
   useEffect(() => {
     fetchPlugins();
+    fetchRepositoryStats();
   }, []);
 
-  const generateDownloadTrends = (pluginsData: Plugin[]) => {
-    const trends = [];
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      trends.push({
-        date: date.toISOString().split('T')[0],
-        downloads: Math.floor(Math.random() * 100)
-      });
+  const fetchRepositoryStats = async () => {
+    try {
+      const response = await axios.get('https://raw.githubusercontent.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json');
+      const stats = response.data.reduce((acc: { [key: string]: RepositoryStats }, stat: RepositoryStats) => {
+        acc[stat.name] = stat;
+        return acc;
+      }, {});
+      setRepositoryStats(stats);
+    } catch (error) {
+      console.error('Error fetching repository stats:', error);
     }
-    setDownloadTrends(trends);
   };
 
   const fetchPlugins = async (retry = 0) => {
@@ -84,7 +122,6 @@ export default function Home() {
         const parsedPlugins = JSON.parse(cachedPlugins);
         setPlugins(parsedPlugins);
         setFilteredPlugins(parsedPlugins);
-        generateDownloadTrends(parsedPlugins);
         setIsLoading(false);
         return;
       }
@@ -105,12 +142,11 @@ export default function Home() {
         if (file.name.endsWith('.json')) {
           try {
             const pluginData = await axios.get(file.download_url);
-            pluginData.data.downloads = Math.floor(Math.random() * 1000);
-            pluginData.data.lastUpdated = new Date(Date.now() - Math.random() * 10000000000).toISOString();
-            pluginData.data.category = ['utility', 'visualization', 'data', 'integration'][Math.floor(Math.random() * 4)];
-            pluginData.data.rating = (3 + Math.random() * 2).toFixed(1);
-            pluginData.data.status = ['stable', 'beta', 'alpha'][Math.floor(Math.random() * 3)];
-            pluginsData.push(pluginData.data);
+            const status = getPluginStatus(pluginData.data.version);
+            pluginsData.push({
+              ...pluginData.data,
+              status
+            });
           } catch (err) {
             console.warn(`Skipping plugin ${file.name}:`, err);
             continue;
@@ -127,7 +163,6 @@ export default function Home() {
 
       setPlugins(pluginsData);
       setFilteredPlugins(pluginsData);
-      generateDownloadTrends(pluginsData);
       setIsLoading(false);
       setRetryCount(0);
 
@@ -145,7 +180,6 @@ export default function Home() {
           const parsed = JSON.parse(cachedData);
           setPlugins(parsed);
           setFilteredPlugins(parsed);
-          generateDownloadTrends(parsed);
           setError('使用緩存資料（可能不是最新）');
         } else {
           setError('無法載入插件資料，請重新整理頁面');
@@ -168,8 +202,8 @@ export default function Home() {
        plugin.author.some(author => author.toLowerCase().includes(term))) &&
       (category === 'all' || plugin.category === category) &&
       ((showStable && plugin.status === 'stable') ||
-       (showBeta && plugin.status === 'beta') ||
-       (showAlpha && plugin.status === 'alpha'))
+       (showRc && plugin.status === 'rc') ||
+       (showPre && plugin.status === 'pre'))
     );
 
     filtered = [...filtered].sort((a, b) => {
@@ -185,17 +219,10 @@ export default function Home() {
     filterPlugins(searchTerm, value);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'stable': return 'bg-green-500';
-      case 'beta': return 'bg-yellow-500';
-      case 'alpha': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const renderStarRating = (rating: number) => {
-    return '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+  const handleDownload = (plugin: Plugin, version: string) => {
+    const filename = `${plugin.name}.trem`;
+    const downloadUrl = `https://github.com/${repositoryStats[plugin.name]?.full_name}/releases/download/${version}/${filename}`;
+    window.open(downloadUrl, '_blank');
   };
 
   if (isLoading) {
@@ -230,9 +257,8 @@ export default function Home() {
 
   const stats = {
     totalPlugins: plugins.length,
-    totalDownloads: plugins.reduce((sum, p) => sum + p.downloads, 0),
+    totalDownloads: Object.values(repositoryStats).reduce((sum, stat) => sum + stat.releases.total_downloads, 0),
     totalAuthors: new Set(plugins.flatMap(p => p.author)).size,
-    avgRating: plugins.reduce((sum, p) => sum + Number(p.rating), 0) / plugins.length
   };
 
   return (
@@ -247,7 +273,7 @@ export default function Home() {
       )}
 
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">TREM Plugins</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">TREM 插件</h1>
         <div className="flex gap-4">
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
@@ -264,7 +290,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold">插件總數</h3>
           <p className="text-2xl font-bold mt-2">{stats.totalPlugins}</p>
@@ -276,27 +302,6 @@ export default function Home() {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold">開發者數量</h3>
           <p className="text-2xl font-bold mt-2">{stats.totalAuthors}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold">平均評分</h3>
-          <p className="text-2xl font-bold mt-2">{stats.avgRating.toFixed(1)}</p>
-          <div className="text-yellow-500">{renderStarRating(stats.avgRating)}</div>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
-        <h3 className="text-lg font-semibold mb-2">下載趨勢</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">過去 30 天的下載統計</p>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={downloadTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="downloads" stroke="#3b82f6" />
-            </LineChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
@@ -311,22 +316,13 @@ export default function Home() {
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-        
-        <select
-          value={selectedCategory}
-          onChange={(e) => handleCategoryChange(e.target.value)}
-          className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-        >
-          <option value="all">全部分類</option>
-          <option value="utility">工具類</option>
-          <option value="visualization">視覺化</option>
-          <option value="data">數據處理</option>
-          <option value="integration">系統整合</option>
-        </select>
 
         <div className="flex gap-2">
           <button
-            onClick={() => setShowStable(!showStable)}
+            onClick={() => {
+              setShowStable(!showStable);
+              filterPlugins(searchTerm, selectedCategory);
+            }}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showStable 
                 ? 'bg-blue-500 text-white hover:bg-blue-600' 
@@ -336,24 +332,30 @@ export default function Home() {
             穩定版
           </button>
           <button
-            onClick={() => setShowBeta(!showBeta)}
+            onClick={() => {
+              setShowRc(!showRc);
+              filterPlugins(searchTerm, selectedCategory);
+            }}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              showBeta 
+              showRc 
                 ? 'bg-blue-500 text-white hover:bg-blue-600' 
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            測試版
+            發布候選
           </button>
           <button
-            onClick={() => setShowAlpha(!showAlpha)}
+            onClick={() => {
+              setShowPre(!showPre);
+              filterPlugins(searchTerm, selectedCategory);
+            }}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              showAlpha 
+              showPre 
                 ? 'bg-blue-500 text-white hover:bg-blue-600' 
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            開發版
+            預覽版
           </button>
         </div>
 
@@ -371,75 +373,101 @@ export default function Home() {
           ? 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6' 
           : 'flex flex-col gap-4'
       }`}>
-        {filteredPlugins.map(plugin => (
-          <div 
-            key={plugin.name}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-xl font-bold mb-1">{plugin.name}</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">版本 {plugin.version}</p>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs text-white ${getStatusColor(plugin.status)}`}>
-                  {plugin.status}
-                </span>
-              </div>
-
-              <p className="mb-4 text-gray-600 dark:text-gray-300">{plugin.description.zh_tw}</p>
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
-                    {plugin.category}
+        {filteredPlugins.map(plugin => {
+          const pluginStats = repositoryStats[plugin.name];
+          const releases = pluginStats?.releases.releases || [];
+          
+          return (
+            <div 
+              key={plugin.name}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold mb-1">{plugin.name}</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">版本 {plugin.version}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs text-white ${getStatusColor(plugin.status)}`}>
+                    {getStatusText(plugin.status)}
                   </span>
-                  <span className="text-yellow-500">{renderStarRating(Number(plugin.rating))}</span>
                 </div>
-                <p className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <Download className="h-4 w-4" />
-                  {plugin.downloads}
-                </p>
-                <p className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <GitFork className="h-4 w-4" />
-                  {plugin.author.join(', ')}
-                </p>
-                <p className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <Clock className="h-4 w-4" />
-                  {new Date(plugin.lastUpdated).toLocaleDateString()}
-                </p>
-              </div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                {Object.entries(plugin.dependencies || {}).map(([name, version]) => (
-                  <span 
-                    key={name}
-                    className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
+                <p className="mb-4 text-gray-600 dark:text-gray-300">{plugin.description.zh_tw}</p>
+                
+                <div className="space-y-2 mb-4">
+                  <p className="text-sm flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                    <GitFork className="h-4 w-4" />
+                    {plugin.author.join(', ')}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {Object.entries(plugin.dependencies || {}).map(([name, version]) => (
+                    <span 
+                      key={name}
+                      className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
+                    >
+                      {name} {version}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <button
+                    onClick={() => window.open(plugin.link, '_blank')}
+                    className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
                   >
-                    {name} {version}
-                  </span>
-                ))}
-              </div>
+                    <GitFork className="h-4 w-4" />
+                    查看源碼
+                  </button>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => window.open(plugin.link, '_blank')}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  查看源碼
-                </button>
-                <button
-                  onClick={() => {
-                    alert('開始下載 ' + plugin.name);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  下載插件
-                </button>
+                  {releases && releases.length > 0 ? (
+                    <div className="flex gap-2">
+                      <select
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+                        defaultValue={releases[0].tag_name}
+                        onChange={(e) => {
+                          // Handle version change if needed
+                        }}
+                      >
+                        {releases.map(release => (
+                          <option key={release.tag_name} value={release.tag_name}>
+                            {release.tag_name} ({new Date(release.published_at).toLocaleDateString()})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleDownload(plugin, releases[0].tag_name)}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        下載
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full px-4 py-2 text-center text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg">
+                      暫無可用版本
+                    </div>
+                  )}
+                </div>
+
+                {pluginStats && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <Tag className="h-4 w-4" />
+                      <span>可用版本: {releases.length}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <Download className="h-4 w-4" />
+                      <span>總下載次數: {pluginStats.releases.total_downloads}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredPlugins.length === 0 && (
