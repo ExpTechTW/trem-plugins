@@ -7,7 +7,6 @@ on:
       - synchronize
       - labeled
       - ready_for_review
-  workflow_dispatch:
 
 jobs:
   auto-merge:
@@ -18,13 +17,19 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout code
+      - name: Debug GitHub Context
+        run: |
+          echo "GitHub Event: ${{ toJson(github.event) }}"
+
+      - name: Checkout PR Branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Debug PR Variables
         run: |
           echo "Repository: ${{ github.event.pull_request.head.repo.full_name }}"
-          echo "Labels: ${{ github.event.pull_request.labels }}"
+          echo "Labels: ${{ toJson(github.event.pull_request.labels) }}"
           echo "PR Title: ${{ github.event.pull_request.title }}"
           echo "Changed Files: ${{ github.event.pull_request.changed_files }}"
           echo "Branch: ${{ github.event.pull_request.head.ref }}"
