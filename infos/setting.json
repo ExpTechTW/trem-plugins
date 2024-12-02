@@ -1,0 +1,14 @@
+{
+  "name": "setting",
+  "version": "1.0.2",
+  "description": {
+    "zh_tw": "TREM-Lite Setting Button Plugin"
+  },
+  "author": ["cstrikeasia", "ExpTech"],
+  "auto-enable": true,
+  "dependencies": {
+    "trem": ">=3.0.0"
+  },
+  "resources": ["AGPL-3.0"],
+  "link": "https://github.com/ExpTechTW/TREM-ExpTech-Plugin"
+}
