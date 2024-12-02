@@ -2,7 +2,11 @@ name: Auto Merge PR
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled, ready_for_review]
+    types:
+      - opened
+      - synchronize
+      - labeled
+      - ready_for_review
   workflow_dispatch:
 
 jobs:
@@ -14,6 +18,9 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Debug PR Variables
         run: |
           echo "Repository: ${{ github.event.pull_request.head.repo.full_name }}"
@@ -21,10 +28,15 @@ jobs:
           echo "PR Title: ${{ github.event.pull_request.title }}"
           echo "Changed Files: ${{ github.event.pull_request.changed_files }}"
           echo "Branch: ${{ github.event.pull_request.head.ref }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
 
       - name: Auto merge pull request
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          gh pr merge $PR_NUMBER --merge --auto
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "PR Number is empty. Skipping auto merge."
+            exit 1
+          fi
+          gh pr merge $PR_NUMBER --merge --auto || echo "Auto merge failed for PR #$PR_NUMBER"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
