@@ -20,20 +20,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Validate Merge and File Changes
+      - name: Get changed files
+        id: changed-files
         run: |
-          echo "Checking if PR is merged..."
-          if [[ "${{ github.event.pull_request.merged }}" != "true" ]]; then
-            echo "PR is not merged. Skipping workflow."
-            exit 0
-          fi
-
           echo "Getting changed files..."
           BASE_SHA=${{ github.event.pull_request.base.sha }}
           HEAD_SHA=${{ github.event.pull_request.head.sha }}
 
-          echo "Base SHA: $BASE_SHA"
-          echo "Head SHA: $HEAD_SHA"
+          echo "base_sha=$BASE_SHA" >> $GITHUB_ENV
+          echo "head_sha=$HEAD_SHA" >> $GITHUB_ENV
 
           CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
           echo "Changed files: $CHANGED_FILES"
@@ -61,9 +56,16 @@ jobs:
           import json
           import os
           import requests
-          import sys
+          import subprocess
           from datetime import datetime
           from pytz import timezone
+
+          def get_changed_files():
+              base_sha = "${{ github.event.pull_request.base.sha }}"
+              head_sha = "${{ github.event.pull_request.head.sha }}"
+              cmd = f"git diff --name-only {base_sha} {head_sha}"
+              result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+              return [f for f in result.stdout.strip().split('\n') if f.startswith('infos/') and f.endswith('.json')]
 
           def get_repo_stats(owner, repo, plugin_info):
               """獲取指定 GitHub 倉庫的統計數據並整合插件信息"""
@@ -126,18 +128,11 @@ jobs:
               os.makedirs("data", exist_ok=True)
 
               # 獲取 PR 中修改的文件
-              base_sha = os.environ["BASE_SHA"]
-              head_sha = os.environ["HEAD_SHA"]
-              
-              changed_files_cmd = f"git diff --name-only {base_sha} {head_sha}"
-              changed_files = os.popen(changed_files_cmd).read().strip().split("\n")
-              
-              # 篩選出修改的 infos/*.json 文件
-              changed_info_files = [f for f in changed_files if f.startswith("infos/") and f.endswith(".json")]
+              changed_info_files = get_changed_files()
               
               if not changed_info_files:
                   print("No plugin info files were changed in this PR")
-                  sys.exit(0)
+                  exit(0)
 
               # 讀取現有的 stats 文件
               stats_file = "data/repository_stats.json"
