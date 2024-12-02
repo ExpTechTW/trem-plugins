@@ -27,9 +27,9 @@ jobs:
         env:
           NEXT_PUBLIC_BASE_PATH: /TREM-Plugins
 
-      - name: Create .nojekyll file
+      - name: Move index.html to root
         run: |
-          mkdir -p out
+          cp out/index.html out/404.html
           touch out/.nojekyll
 
       - name: Deploy to GitHub Pages
