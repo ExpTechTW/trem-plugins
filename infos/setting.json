@@ -10,5 +10,5 @@
     "trem": ">=3.0.0"
   },
   "resources": ["AGPL-3.0"],
-  "link": "https://github.com/ExpTechTW/TREM-ExpTech-Plugin"
+  "link": "https://github.com/ExpTechTW/TREM-Setting-Plugin"
 }
