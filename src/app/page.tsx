@@ -53,7 +53,7 @@ export default function Home() {
         const pluginsData = await response.json() as Plugin[];
 
         if (pluginsData.length === 0) {
-          throw new Error('無法載入插件數據');
+          throw new Error('無法載入擴充數據');
         }
 
         localStorage.setItem('tremPlugins', JSON.stringify(pluginsData));
@@ -81,7 +81,7 @@ export default function Home() {
             setError('使用緩存資料（可能不是最新）');
           }
           else {
-            setError('無法載入插件資料，請重新整理頁面');
+            setError('無法載入擴充資料，請重新整理頁面');
           }
         }
         setIsLoading(false);
@@ -200,7 +200,7 @@ export default function Home() {
 
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-foreground">
-          TREM 插件
+          TREM 擴充
         </h1>
         <div className="flex gap-4">
           <button
@@ -232,7 +232,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
-          <CardHeader className="pb-2">插件總數</CardHeader>
+          <CardHeader className="pb-2">擴充總數</CardHeader>
           <CardContent>
             <span className="text-3xl font-bold">
               {stats.totalPlugins}
@@ -262,7 +262,7 @@ export default function Home() {
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="搜尋插件..."
+            placeholder="搜尋擴充..."
             value={searchTerm}
             onChange={handleSearch}
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -329,7 +329,7 @@ export default function Home() {
       {filteredPlugins.length === 0 && (
         <div className="text-center py-12">
           <p className="text-xl text-gray-500 dark:text-gray-400">
-            沒有找到符合條件的插件
+            沒有找到符合條件的擴充
           </p>
         </div>
       )}
