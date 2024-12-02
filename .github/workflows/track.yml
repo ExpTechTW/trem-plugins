@@ -3,7 +3,7 @@ name: Track Repository Stats
 on:
   pull_request:
     types:
-      - closed # 當 PR 關閉時觸發
+      - closed
 
 jobs:
   track-stats:
@@ -17,7 +17,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0 # 確保能獲取完整的 git 歷史
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Validate Merge and File Changes
         run: |
@@ -27,9 +28,14 @@ jobs:
             exit 0
           fi
 
-          echo "Fetching list of changed files..."
-          git fetch origin ${{ github.event.pull_request.head.sha }}
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.merge_commit_sha }})
+          echo "Getting changed files..."
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+
+          echo "Base SHA: $BASE_SHA"
+          echo "Head SHA: $HEAD_SHA"
+
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
           echo "Changed files: $CHANGED_FILES"
 
           if ! echo "$CHANGED_FILES" | grep -q "^infos/"; then
@@ -48,6 +54,8 @@ jobs:
           pip install requests python-dateutil pytz
 
       - name: Fetch repository stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           python - <<EOF
           import json
@@ -56,21 +64,22 @@ jobs:
           from datetime import datetime
           from pytz import timezone
 
-          # 定義函數
           def get_repo_stats(owner, repo):
               """獲取指定 GitHub 倉庫的統計數據"""
+              headers = {
+                  "Authorization": f"token {os.environ.get('GITHUB_TOKEN')}",
+                  "Accept": "application/vnd.github.v3+json"
+              }
               base_url = f"https://api.github.com/repos/{owner}/{repo}"
 
-              # 獲取基本倉庫信息
-              repo_response = requests.get(base_url)
+              repo_response = requests.get(base_url, headers=headers)
               if repo_response.status_code != 200:
                   print(f"Failed to get repo info: {repo_response.status_code}")
                   return None
 
               repo_data = repo_response.json()
 
-              # 獲取發布版本
-              releases_response = requests.get(f"{base_url}/releases")
+              releases_response = requests.get(f"{base_url}/releases", headers=headers)
               releases = releases_response.json() if releases_response.status_code == 200 else []
 
               total_downloads = 0
@@ -95,22 +104,18 @@ jobs:
                   }
               }
 
-          # 主程序
           try:
               print("初始化資料...")
               os.makedirs("data", exist_ok=True)
 
-              # 加載現有的 repository_stats.json
               stats_file = "data/repository_stats.json"
               repository_stats = []
               if os.path.exists(stats_file):
                   with open(stats_file, "r", encoding="utf-8") as f:
                       repository_stats = json.load(f)
 
-              # 設置當前時區 (UTC+8)
               now = datetime.now(timezone("Asia/Taipei")).strftime("%Y-%m-%d %H:%M:%S")
 
-              # 檢查 infos 目錄
               if os.path.exists("infos"):
                   for filename in os.listdir("infos"):
                       if filename.endswith(".json"):
@@ -125,17 +130,15 @@ jobs:
                                           
                                           stats = get_repo_stats(owner, repo)
                                           if stats:
-                                              # 尋找是否已有對應的 object
                                               matched = False
                                               for obj in repository_stats:
                                                   if obj["name"] == stats["name"]:
-                                                      obj.update(stats)  # 更新現有數據
+                                                      obj.update(stats)
                                                       obj["updated_at"] = now
                                                       matched = True
                                                       print(f"更新倉庫數據: {stats['name']}")
                                                       break
                                               if not matched:
-                                                  # 如果沒有匹配的 object，新增
                                                   stats["updated_at"] = now
                                                   repository_stats.append(stats)
                                                   print(f"新增倉庫數據: {stats['name']}")
@@ -144,7 +147,6 @@ jobs:
                                   print(f"處理 {filename} 時發生錯誤: {str(e)}")
                                   continue
 
-              # 保存更新後的 repository_stats.json
               with open(stats_file, "w", encoding="utf-8") as f:
                   json.dump(repository_stats, f, indent=2, ensure_ascii=False)
 
@@ -157,8 +159,7 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add data/repository_stats.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update repository statistics [skip ci]"
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update repository statistics [skip ci]" && git push)
