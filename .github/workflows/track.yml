@@ -2,199 +2,182 @@ name: Track Repository Stats
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天 UTC 00:00 執行
-  workflow_dispatch:      # 允許手動觸發
+    - cron: "0 0 * * *" # 每天 UTC 00:00 執行
+  workflow_dispatch: # 允許手動觸發
 
 jobs:
   track-stats:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-          
+          python-version: "3.x"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests python-dateutil
-          
+
       - name: Fetch repository stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -c '
-import json
-import os
-import requests
-from datetime import datetime
-from dateutil import parser
-import time
+          cat << 'EOF' > script.py
+          import json
+          import os
+          import requests
+          from datetime import datetime
+          from dateutil import parser
+          import time
 
-def get_rate_limit(headers):
-    """檢查 API 限制"""
-    response = requests.get("https://api.github.com/rate_limit", headers=headers)
-    return response.json()["rate"]["remaining"]
+          def get_rate_limit(headers):
+              response = requests.get("https://api.github.com/rate_limit", headers=headers)
+              return response.json()["rate"]["remaining"]
 
-def get_repo_stats(owner, repo, headers):
-    """獲取倉庫統計資訊"""
-    base_url = f"https://api.github.com/repos/{owner}/{repo}"
-    
-    # 基本倉庫信息
-    repo_response = requests.get(base_url, headers=headers)
-    if repo_response.status_code != 200:
-        return None
-    
-    repo_data = repo_response.json()
-    
-    # 獲取最新提交
-    commits_response = requests.get(f"{base_url}/commits", headers=headers)
-    latest_commit = commits_response.json()[0] if commits_response.status_code == 200 else None
-    
-    # 獲取發布版本
-    releases_response = requests.get(f"{base_url}/releases", headers=headers)
-    releases = releases_response.json() if releases_response.status_code == 200 else []
-    
-    # 獲取開放的 issues
-    issues_response = requests.get(f"{base_url}/issues?state=open", headers=headers)
-    issues = issues_response.json() if issues_response.status_code == 200 else []
-    
-    # 獲取分支信息
-    branches_response = requests.get(f"{base_url}/branches", headers=headers)
-    branches = branches_response.json() if branches_response.status_code == 200 else []
-    
-    # 統計發布版本下載次數
-    total_downloads = 0
-    release_stats = []
-    for release in releases:
-        release_downloads = 0
-        for asset in release["assets"]:
-            release_downloads += asset["download_count"]
-        
-        release_stats.append({
-            "tag_name": release["tag_name"],
-            "name": release["name"],
-            "downloads": release_downloads,
-            "published_at": release["published_at"],
-            "asset_count": len(release["assets"]),
-            "is_prerelease": release["prerelease"],
-            "is_draft": release["draft"]
-        })
-        total_downloads += release_downloads
-    
-    return {
-        "repository": {
-            "name": repo_data["name"],
-            "full_name": repo_data["full_name"],
-            "description": repo_data["description"],
-            "created_at": repo_data["created_at"],
-            "updated_at": repo_data["updated_at"],
-            "pushed_at": repo_data["pushed_at"],
-            "size": repo_data["size"],
-            "stargazers_count": repo_data["stargazers_count"],
-            "watchers_count": repo_data["watchers_count"],
-            "language": repo_data["language"],
-            "forks_count": repo_data["forks_count"],
-            "open_issues_count": repo_data["open_issues_count"],
-            "license": repo_data["license"]["name"] if repo_data["license"] else None,
-            "topics": repo_data["topics"],
-            "visibility": repo_data["visibility"],
-            "default_branch": repo_data["default_branch"],
-            "is_template": repo_data["is_template"],
-            "has_wiki": repo_data["has_wiki"],
-            "has_pages": repo_data["has_pages"],
-            "branch_count": len(branches),
-            "branches": [b["name"] for b in branches]
-        },
-        "latest_commit": {
-            "sha": latest_commit["sha"] if latest_commit else None,
-            "message": latest_commit["commit"]["message"] if latest_commit else None,
-            "author": latest_commit["commit"]["author"]["name"] if latest_commit else None,
-            "date": latest_commit["commit"]["author"]["date"] if latest_commit else None
-        } if latest_commit else None,
-        "releases": {
-            "total_count": len(releases),
-            "total_downloads": total_downloads,
-            "releases": release_stats
-        },
-        "issues": {
-            "open_count": len(issues),
-            "recent_issues": [{
-                "number": issue["number"],
-                "title": issue["title"],
-                "created_at": issue["created_at"],
-                "comments": issue["comments"]
-            } for issue in issues[:5]]  # 只保留最近5個
-        },
-        "metadata": {
-            "collected_at": datetime.utcnow().isoformat(),
-            "api_version": "v3"
-        }
-    }
+          def get_repo_stats(owner, repo, headers):
+              base_url = f"https://api.github.com/repos/{owner}/{repo}"
+              
+              repo_response = requests.get(base_url, headers=headers)
+              if repo_response.status_code != 200:
+                  return None
+              
+              repo_data = repo_response.json()
+              
+              commits_response = requests.get(f"{base_url}/commits", headers=headers)
+              latest_commit = commits_response.json()[0] if commits_response.status_code == 200 else None
+              
+              releases_response = requests.get(f"{base_url}/releases", headers=headers)
+              releases = releases_response.json() if releases_response.status_code == 200 else []
+              
+              issues_response = requests.get(f"{base_url}/issues?state=open", headers=headers)
+              issues = issues_response.json() if issues_response.status_code == 200 else []
+              
+              branches_response = requests.get(f"{base_url}/branches", headers=headers)
+              branches = branches_response.json() if branches_response.status_code == 200 else []
+              
+              total_downloads = 0
+              release_stats = []
+              for release in releases:
+                  release_downloads = 0
+                  for asset in release["assets"]:
+                      release_downloads += asset["download_count"]
+                  
+                  release_stats.append({
+                      "tag_name": release["tag_name"],
+                      "name": release["name"],
+                      "downloads": release_downloads,
+                      "published_at": release["published_at"],
+                      "asset_count": len(release["assets"]),
+                      "is_prerelease": release["prerelease"],
+                      "is_draft": release["draft"]
+                  })
+                  total_downloads += release_downloads
+              
+              return {
+                  "repository": {
+                      "name": repo_data["name"],
+                      "full_name": repo_data["full_name"],
+                      "description": repo_data["description"],
+                      "created_at": repo_data["created_at"],
+                      "updated_at": repo_data["updated_at"],
+                      "pushed_at": repo_data["pushed_at"],
+                      "size": repo_data["size"],
+                      "stargazers_count": repo_data["stargazers_count"],
+                      "watchers_count": repo_data["watchers_count"],
+                      "language": repo_data["language"],
+                      "forks_count": repo_data["forks_count"],
+                      "open_issues_count": repo_data["open_issues_count"],
+                      "license": repo_data["license"]["name"] if repo_data["license"] else None,
+                      "topics": repo_data["topics"],
+                      "visibility": repo_data["visibility"],
+                      "default_branch": repo_data["default_branch"],
+                      "is_template": repo_data["is_template"],
+                      "has_wiki": repo_data["has_wiki"],
+                      "has_pages": repo_data["has_pages"],
+                      "branch_count": len(branches),
+                      "branches": [b["name"] for b in branches]
+                  },
+                  "latest_commit": {
+                      "sha": latest_commit["sha"] if latest_commit else None,
+                      "message": latest_commit["commit"]["message"] if latest_commit else None,
+                      "author": latest_commit["commit"]["author"]["name"] if latest_commit else None,
+                      "date": latest_commit["commit"]["author"]["date"] if latest_commit else None
+                  } if latest_commit else None,
+                  "releases": {
+                      "total_count": len(releases),
+                      "total_downloads": total_downloads,
+                      "releases": release_stats
+                  },
+                  "issues": {
+                      "open_count": len(issues),
+                      "recent_issues": [{
+                          "number": issue["number"],
+                          "title": issue["title"],
+                          "created_at": issue["created_at"],
+                          "comments": issue["comments"]
+                      } for issue in issues[:5]]
+                  },
+                  "metadata": {
+                      "collected_at": datetime.utcnow().isoformat(),
+                      "api_version": "v3"
+                  }
+              }
 
-# 主程序
-try:
-    # 設置 API 請求頭
-    headers = {
-        "Accept": "application/vnd.github.v3+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-    if "GITHUB_TOKEN" in os.environ:
-        headers["Authorization"] = f"token {os.environ[\"GITHUB_TOKEN\"]}"
-    
-    # 讀取所有 infos/*.json 檔案
-    results = {}
-    os.makedirs("data", exist_ok=True)
-    
-    # 如果存在舊的數據，先讀取
-    if os.path.exists("data/repository_stats.json"):
-        with open("data/repository_stats.json", "r", encoding="utf-8") as f:
-            results = json.load(f)
-    
-    # 處理每個 info 文件
-    for filename in os.listdir("infos"):
-        if filename.endswith(".json"):
-            with open(f"infos/{filename}", "r", encoding="utf-8") as f:
-                try:
-                    data = json.load(f)
-                    if "link" in data and "github.com" in data["link"]:
-                        # 從 link 提取 owner/repo
-                        parts = data["link"].strip("/").split("/")
-                        if len(parts) >= 2:
-                            owner = parts[-2]
-                            repo = parts[-1]
-                            repo_key = f"{owner}/{repo}"
-                            
-                            # 檢查 API 限制
-                            if get_rate_limit(headers) < 10:  # 保留一些配額
-                                print(f"Warning: API rate limit is low, skipping remaining repositories")
-                                break
-                            
-                            # 獲取倉庫統計
-                            stats = get_repo_stats(owner, repo, headers)
-                            if stats:
-                                results[repo_key] = stats
-                                print(f"Successfully collected stats for {repo_key}")
-                            
-                            # 避免請求過快
-                            time.sleep(1)
-                except Exception as e:
-                    print(f"Error processing {filename}: {str(e)}")
-                    continue
+          try:
+              headers = {
+                  "Accept": "application/vnd.github.v3+json",
+                  "X-GitHub-Api-Version": "2022-11-28"
+              }
+              if "GITHUB_TOKEN" in os.environ:
+                  headers["Authorization"] = f"token {os.environ[\"GITHUB_TOKEN\"]}"
+              
+              results = {}
+              os.makedirs("data", exist_ok=True)
+              
+              if os.path.exists("data/repository_stats.json"):
+                  with open("data/repository_stats.json", "r", encoding="utf-8") as f:
+                      results = json.load(f)
+              
+              for filename in os.listdir("infos"):
+                  if filename.endswith(".json"):
+                      with open(f"infos/{filename}", "r", encoding="utf-8") as f:
+                          try:
+                              data = json.load(f)
+                              if "link" in data and "github.com" in data["link"]:
+                                  parts = data["link"].strip("/").split("/")
+                                  if len(parts) >= 2:
+                                      owner = parts[-2]
+                                      repo = parts[-1]
+                                      repo_key = f"{owner}/{repo}"
+                                      
+                                      if get_rate_limit(headers) < 10:
+                                          print(f"Warning: API rate limit is low, skipping remaining repositories")
+                                          break
+                                      
+                                      stats = get_repo_stats(owner, repo, headers)
+                                      if stats:
+                                          results[repo_key] = stats
+                                          print(f"Successfully collected stats for {repo_key}")
+                                      
+                                      time.sleep(1)
+                          except Exception as e:
+                              print(f"Error processing {filename}: {str(e)}")
+                              continue
 
-    # 寫入結果
-    with open("data/repository_stats.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
-        
-except Exception as e:
-    print(f"Error: {str(e)}")
-    raise e
-          '
-          
+              with open("data/repository_stats.json", "w", encoding="utf-8") as f:
+                  json.dump(results, f, indent=2, ensure_ascii=False)
+                  
+          except Exception as e:
+              print(f"Error: {str(e)}")
+              raise e
+          EOF
+          python script.py
+
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
