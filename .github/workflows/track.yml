@@ -1,13 +1,18 @@
 name: Track Repository Stats
 
 on:
-  schedule:
-    - cron: "0 0 * * *" # 每天 UTC 00:00 執行
-  workflow_dispatch: # 允許手動觸發
+  pull_request:
+    types:
+      - closed # 當 PR 關閉（合併或取消）時觸發
 
 jobs:
   track-stats:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.changed_files, 'infos/')
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: read
 
     steps:
       - name: Checkout repository
@@ -21,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests python-dateutil
+          pip install requests python-dateutil pytz
 
       - name: Fetch repository stats
         run: |
@@ -30,6 +35,7 @@ jobs:
           import os
           import requests
           from datetime import datetime
+          import pytz
           import time
 
           print("Starting repository stats collection...")
@@ -72,9 +78,6 @@ jobs:
                       "total_count": len(releases),
                       "total_downloads": total_downloads,
                       "releases": release_stats
-                  },
-                  "metadata": {
-                      "collected_at": datetime.utcnow().isoformat()
                   }
               }
 
@@ -82,12 +85,15 @@ jobs:
               print("Creating data directory...")
               os.makedirs("data", exist_ok=True)
               
-              results = {}
+              stats = []
               if os.path.exists("data/repository_stats.json"):
                   print("Loading existing stats file...")
                   with open("data/repository_stats.json", "r", encoding="utf-8") as f:
-                      results = json.load(f)
+                      stats = json.load(f)
               
+              # 現有插件的 key
+              existing_keys = {item["full_name"]: item for item in stats}
+
               print("Checking for infos directory...")
               if os.path.exists("infos"):
                   print(f"Found infos directory, contents: {os.listdir('infos')}")
@@ -106,10 +112,15 @@ jobs:
                                           repo_key = f"{owner}/{repo}"
                                           print(f"Found repository: {repo_key}")
                                           
-                                          stats = get_repo_stats(owner, repo)
-                                          if stats:
-                                              results[repo_key] = stats
-                                              print(f"Successfully collected stats for {repo_key}")
+                                          repo_stats = get_repo_stats(owner, repo)
+                                          if repo_stats:
+                                              # 添加或更新數據
+                                              repo_stats["metadata"] = {
+                                                  "updated_at_utc_8": datetime.now(pytz.timezone('Asia/Taipei')).isoformat(),
+                                                  "source_file": filename
+                                              }
+                                              existing_keys[repo_key] = repo_stats
+                                              print(f"Successfully updated stats for {repo_key}")
                                           else:
                                               print(f"Failed to get stats for {repo_key}")
                                           
@@ -118,9 +129,12 @@ jobs:
                                   print(f"Error processing {filename}: {str(e)}")
                                   continue
 
+              # 更新 stats
+              stats = list(existing_keys.values())
+
               print("Saving results...")
               with open("data/repository_stats.json", "w", encoding="utf-8") as f:
-                  json.dump(results, f, indent=2, ensure_ascii=False)
+                  json.dump(stats, f, indent=2, ensure_ascii=False)
               print("Done!")
                   
           except Exception as e:
