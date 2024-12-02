@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "infos/**"
-      - "docs/**"
 
 jobs:
   deploy:
