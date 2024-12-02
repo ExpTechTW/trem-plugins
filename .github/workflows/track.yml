@@ -64,7 +64,7 @@ jobs:
           from datetime import datetime
           from pytz import timezone
 
-          def get_repo_stats(owner, repo):
+          def get_repo_stats(owner, repo, info_name):
               """獲取指定 GitHub 倉庫的統計數據"""
               headers = {
                   "Authorization": f"token {os.environ.get('GITHUB_TOKEN')}",
@@ -95,7 +95,7 @@ jobs:
                   total_downloads += release_downloads
 
               return {
-                  "name": repo_data["name"],
+                  "name": info_name,  # 使用 infos/*.json 中的 name
                   "full_name": repo_data["full_name"],
                   "releases": {
                       "total_count": len(releases),
@@ -122,13 +122,13 @@ jobs:
                           with open(f"infos/{filename}", "r", encoding="utf-8") as f:
                               try:
                                   data = json.load(f)
-                                  if "link" in data and "github.com" in data["link"]:
+                                  if "link" in data and "github.com" in data["link"] and "name" in data:
                                       parts = data["link"].strip("/").split("/")
                                       if len(parts) >= 2:
                                           owner, repo = parts[-2], parts[-1]
-                                          print(f"處理倉庫: {owner}/{repo}")
+                                          print(f"處理倉庫: {owner}/{repo} ({data['name']})")
                                           
-                                          stats = get_repo_stats(owner, repo)
+                                          stats = get_repo_stats(owner, repo, data['name'])
                                           if stats:
                                               matched = False
                                               for obj in repository_stats:
