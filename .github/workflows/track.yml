@@ -23,18 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests python-dateutil
 
-      - name: Debug directory structure
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Directory contents:"
-          ls -la
-          echo "infos directory contents:"
-          ls -la infos || echo "infos directory not found"
-
       - name: Fetch repository stats
-        env:
-          SECRETS_TOKEN: ${{ secrets.SECRETS_TOKEN }}
         run: |
           python - <<EOF
           import json
@@ -44,39 +33,22 @@ jobs:
           import time
 
           print("Starting repository stats collection...")
-          print(f"Current working directory: {os.getcwd()}")
-          print(f"Directory contents: {os.listdir('.')}")
 
-          def get_rate_limit(headers):
-              response = requests.get("https://api.github.com/rate_limit", headers=headers)
-              if response.status_code != 200:
-                  print(f"Rate limit check failed: {response.status_code}")
-                  return 0
-              return response.json()["rate"]["remaining"]
-
-          def get_repo_stats(owner, repo, headers):
+          def get_repo_stats(owner, repo):
               print(f"Fetching stats for {owner}/{repo}")
               base_url = f"https://api.github.com/repos/{owner}/{repo}"
               
-              repo_response = requests.get(base_url, headers=headers)
+              # 獲取基本倉庫信息
+              repo_response = requests.get(base_url)
               if repo_response.status_code != 200:
                   print(f"Failed to get repo info: {repo_response.status_code}")
                   return None
               
               repo_data = repo_response.json()
-              print(f"Successfully got basic repo info for {owner}/{repo}")
               
-              commits_response = requests.get(f"{base_url}/commits", headers=headers)
-              latest_commit = commits_response.json()[0] if commits_response.status_code == 200 else None
-              
-              releases_response = requests.get(f"{base_url}/releases", headers=headers)
+              # 獲取發布版本
+              releases_response = requests.get(f"{base_url}/releases")
               releases = releases_response.json() if releases_response.status_code == 200 else []
-              
-              issues_response = requests.get(f"{base_url}/issues?state=open", headers=headers)
-              issues = issues_response.json() if issues_response.status_code == 200 else []
-              
-              branches_response = requests.get(f"{base_url}/branches", headers=headers)
-              branches = branches_response.json() if branches_response.status_code == 200 else []
               
               total_downloads = 0
               release_stats = []
@@ -89,92 +61,36 @@ jobs:
                       "tag_name": release["tag_name"],
                       "name": release["name"],
                       "downloads": release_downloads,
-                      "published_at": release["published_at"],
-                      "asset_count": len(release["assets"]),
-                      "is_prerelease": release["prerelease"],
-                      "is_draft": release["draft"]
+                      "published_at": release["published_at"]
                   })
                   total_downloads += release_downloads
               
               return {
-                  "repository": {
-                      "name": repo_data["name"],
-                      "full_name": repo_data["full_name"],
-                      "description": repo_data["description"],
-                      "created_at": repo_data["created_at"],
-                      "updated_at": repo_data["updated_at"],
-                      "pushed_at": repo_data["pushed_at"],
-                      "size": repo_data["size"],
-                      "stargazers_count": repo_data["stargazers_count"],
-                      "watchers_count": repo_data["watchers_count"],
-                      "language": repo_data["language"],
-                      "forks_count": repo_data["forks_count"],
-                      "open_issues_count": repo_data["open_issues_count"],
-                      "license": repo_data["license"]["name"] if repo_data["license"] else None,
-                      "topics": repo_data["topics"],
-                      "visibility": repo_data["visibility"],
-                      "default_branch": repo_data["default_branch"],
-                      "is_template": repo_data["is_template"],
-                      "has_wiki": repo_data["has_wiki"],
-                      "has_pages": repo_data["has_pages"],
-                      "branch_count": len(branches),
-                      "branches": [b["name"] for b in branches]
-                  },
-                  "latest_commit": {
-                      "sha": latest_commit["sha"] if latest_commit else None,
-                      "message": latest_commit["commit"]["message"] if latest_commit else None,
-                      "author": latest_commit["commit"]["author"]["name"] if latest_commit else None,
-                      "date": latest_commit["commit"]["author"]["date"] if latest_commit else None
-                  } if latest_commit else None,
+                  "name": repo_data["name"],
+                  "full_name": repo_data["full_name"],
                   "releases": {
                       "total_count": len(releases),
                       "total_downloads": total_downloads,
                       "releases": release_stats
                   },
-                  "issues": {
-                      "open_count": len(issues),
-                      "recent_issues": [{
-                          "number": issue["number"],
-                          "title": issue["title"],
-                          "created_at": issue["created_at"],
-                          "comments": issue["comments"]
-                      } for issue in issues[:5]]
-                  },
                   "metadata": {
-                      "collected_at": datetime.utcnow().isoformat(),
-                      "api_version": "v3"
+                      "collected_at": datetime.utcnow().isoformat()
                   }
               }
 
           try:
-              print("Setting up headers...")
-              headers = {
-                  "Accept": "application/vnd.github.v3+json",
-                  "X-GitHub-Api-Version": "2022-11-28"
-              }
-              token = os.environ.get("SECRETS_TOKEN")
-              if token:
-                  print("Token found in environment")
-                  headers["Authorization"] = f"Bearer {token}"
-              else:
-                  print("Warning: No token found in environment")
-              
-              results = {}
               print("Creating data directory...")
               os.makedirs("data", exist_ok=True)
               
+              results = {}
               if os.path.exists("data/repository_stats.json"):
                   print("Loading existing stats file...")
                   with open("data/repository_stats.json", "r", encoding="utf-8") as f:
                       results = json.load(f)
               
               print("Checking for infos directory...")
-              if not os.path.exists("infos"):
-                  print("Error: infos directory not found!")
-                  print(f"Available directories: {os.listdir('.')}")
-              else:
+              if os.path.exists("infos"):
                   print(f"Found infos directory, contents: {os.listdir('infos')}")
-                  
                   for filename in os.listdir("infos"):
                       if filename.endswith(".json"):
                           print(f"Processing {filename}...")
@@ -190,13 +106,7 @@ jobs:
                                           repo_key = f"{owner}/{repo}"
                                           print(f"Found repository: {repo_key}")
                                           
-                                          rate_limit = get_rate_limit(headers)
-                                          print(f"Current rate limit: {rate_limit}")
-                                          if rate_limit < 10:
-                                              print(f"Warning: API rate limit is low, skipping remaining repositories")
-                                              break
-                                          
-                                          stats = get_repo_stats(owner, repo, headers)
+                                          stats = get_repo_stats(owner, repo)
                                           if stats:
                                               results[repo_key] = stats
                                               print(f"Successfully collected stats for {repo_key}")
@@ -217,11 +127,6 @@ jobs:
               print(f"Error: {str(e)}")
               raise e
           EOF
-
-      - name: List data directory
-        run: |
-          echo "Data directory contents:"
-          ls -la data || echo "data directory not found"
 
       - name: Commit and push changes
         run: |
