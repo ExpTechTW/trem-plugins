@@ -7,13 +7,11 @@ on:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    # 增加更嚴格的條件檢查
-    if: |
+    if: >
       github.event.pull_request.head.repo.full_name == github.repository &&
       contains(github.event.pull_request.labels.*.name, 'auto-merge') &&
       github.event.pull_request.user.login == 'github-actions[bot]' &&
       startsWith(github.event.pull_request.title, 'Update ') &&
-      endsWith(github.event.pull_request.title, '.json') &&
       github.event.pull_request.changed_files == 1 &&
       startsWith(github.event.pull_request.head.ref, 'update-file-')
 
