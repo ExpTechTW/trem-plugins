@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const isProduction = process.env.NODE_ENV === 'production';
-const basePath = isProduction ? '/TREM-Plugins' : '';
+const basePath = isProduction ? '/trem-plugins' : '';
 
 const nextConfig: NextConfig = {
   output: 'export',
