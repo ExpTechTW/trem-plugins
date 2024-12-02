@@ -7,7 +7,6 @@ on:
 
 jobs:
   track-stats:
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.changed_files, 'infos/')
     runs-on: ubuntu-latest
 
     permissions:
@@ -15,6 +14,29 @@ jobs:
       pull-requests: read
 
     steps:
+      - name: Debug GitHub Context
+        run: |
+          echo "GitHub Event Context:"
+          echo "${{ toJson(github.event) }}"
+
+      - name: Validate Merge and File Changes
+        run: |
+          echo "Checking if PR is merged..."
+          if [[ "${{ github.event.pull_request.merged }}" != "true" ]]; then
+            echo "PR is not merged. Skipping workflow."
+            exit 0
+          fi
+
+          echo "Fetching list of changed files..."
+          git fetch origin ${{ github.event.pull_request.head.sha }}
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.merge_commit_sha }})
+          echo "Changed files: $CHANGED_FILES"
+
+          if ! echo "$CHANGED_FILES" | grep -q "^infos/"; then
+            echo "No changes in infos/ directory. Skipping workflow."
+            exit 0
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
