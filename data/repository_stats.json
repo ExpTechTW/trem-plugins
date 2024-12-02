@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "name": "TREM-Example-Plugin",
+    "full_name": "ExpTechTW/TREM-Example-Plugin",
+    "releases": {
+      "total_count": 0,
+      "total_downloads": 0,
+      "releases": []
+    },
+    "updated_at": "2024-12-02 15:01:02"
+  },
+  {
+    "name": "TREM-Websocket-Plugin",
+    "full_name": "ExpTechTW/TREM-Websocket-Plugin",
+    "releases": {
+      "total_count": 0,
+      "total_downloads": 0,
+      "releases": []
+    },
+    "updated_at": "2024-12-02 15:03:03"
+  }
+]
