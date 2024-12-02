@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 確保能獲取完整的 git 歷史
+          fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Validate Merge and File Changes
@@ -64,8 +64,8 @@ jobs:
           from datetime import datetime
           from pytz import timezone
 
-          def get_repo_stats(owner, repo, info_name):
-              """獲取指定 GitHub 倉庫的統計數據"""
+          def get_repo_stats(owner, repo, plugin_info):
+              """獲取指定 GitHub 倉庫的統計數據並整合插件信息"""
               headers = {
                   "Authorization": f"token {os.environ.get('GITHUB_TOKEN')}",
                   "Accept": "application/vnd.github.v3+json"
@@ -94,13 +94,31 @@ jobs:
                   })
                   total_downloads += release_downloads
 
+              # 使用插件版本判斷狀態
+              def get_status(version):
+                  if "-pre" in version:
+                      return "pre"
+                  elif "-rc" in version:
+                      return "rc"
+                  return "stable"
+
+              # 整合插件信息和倉庫數據
               return {
-                  "name": info_name,  # 使用 infos/*.json 中的 name
-                  "full_name": repo_data["full_name"],
-                  "releases": {
-                      "total_count": len(releases),
-                      "total_downloads": total_downloads,
-                      "releases": release_stats
+                  "name": plugin_info["name"],
+                  "version": plugin_info["version"],
+                  "description": plugin_info["description"],
+                  "author": plugin_info["author"],
+                  "dependencies": plugin_info.get("dependencies", {}),
+                  "resources": plugin_info.get("resources", []),
+                  "link": plugin_info["link"],
+                  "status": get_status(plugin_info["version"]),
+                  "repository": {
+                      "full_name": repo_data["full_name"],
+                      "releases": {
+                          "total_count": len(releases),
+                          "total_downloads": total_downloads,
+                          "releases": release_stats
+                      }
                   }
               }
 
@@ -121,20 +139,20 @@ jobs:
                       if filename.endswith(".json"):
                           with open(f"infos/{filename}", "r", encoding="utf-8") as f:
                               try:
-                                  data = json.load(f)
-                                  if "link" in data and "github.com" in data["link"] and "name" in data:
-                                      parts = data["link"].strip("/").split("/")
+                                  plugin_info = json.load(f)
+                                  if "link" in plugin_info and "github.com" in plugin_info["link"] and "name" in plugin_info:
+                                      parts = plugin_info["link"].strip("/").split("/")
                                       if len(parts) >= 2:
                                           owner, repo = parts[-2], parts[-1]
-                                          print(f"處理倉庫: {owner}/{repo} ({data['name']})")
+                                          print(f"處理倉庫: {owner}/{repo} ({plugin_info['name']})")
                                           
-                                          stats = get_repo_stats(owner, repo, data['name'])
+                                          stats = get_repo_stats(owner, repo, plugin_info)
                                           if stats:
                                               matched = False
-                                              for obj in repository_stats:
+                                              for i, obj in enumerate(repository_stats):
                                                   if obj["name"] == stats["name"]:
-                                                      obj.update(stats)
-                                                      obj["updated_at"] = now
+                                                      repository_stats[i] = stats
+                                                      repository_stats[i]["updated_at"] = now
                                                       matched = True
                                                       print(f"更新倉庫數據: {stats['name']}")
                                                       break
@@ -147,8 +165,9 @@ jobs:
                                   print(f"處理 {filename} 時發生錯誤: {str(e)}")
                                   continue
 
+              # 壓縮成一行輸出
               with open(stats_file, "w", encoding="utf-8") as f:
-                  json.dump(repository_stats, f, indent=2, ensure_ascii=False)
+                  json.dump(repository_stats, f, ensure_ascii=False, separators=(',', ':'))
 
               print("數據更新完成！")
 
