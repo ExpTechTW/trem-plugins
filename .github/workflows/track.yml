@@ -23,6 +23,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests python-dateutil
 
+      - name: Debug directory structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "infos directory contents:"
+          ls -la infos || echo "infos directory not found"
+
       - name: Fetch repository stats
         env:
           SECRETS_TOKEN: ${{ secrets.SECRETS_TOKEN }}
@@ -32,21 +41,30 @@ jobs:
           import os
           import requests
           from datetime import datetime
-          from dateutil import parser
           import time
+
+          print("Starting repository stats collection...")
+          print(f"Current working directory: {os.getcwd()}")
+          print(f"Directory contents: {os.listdir('.')}")
 
           def get_rate_limit(headers):
               response = requests.get("https://api.github.com/rate_limit", headers=headers)
+              if response.status_code != 200:
+                  print(f"Rate limit check failed: {response.status_code}")
+                  return 0
               return response.json()["rate"]["remaining"]
 
           def get_repo_stats(owner, repo, headers):
+              print(f"Fetching stats for {owner}/{repo}")
               base_url = f"https://api.github.com/repos/{owner}/{repo}"
               
               repo_response = requests.get(base_url, headers=headers)
               if repo_response.status_code != 200:
+                  print(f"Failed to get repo info: {repo_response.status_code}")
                   return None
               
               repo_data = repo_response.json()
+              print(f"Successfully got basic repo info for {owner}/{repo}")
               
               commits_response = requests.get(f"{base_url}/commits", headers=headers)
               latest_commit = commits_response.json()[0] if commits_response.status_code == 200 else None
@@ -129,54 +147,81 @@ jobs:
               }
 
           try:
+              print("Setting up headers...")
               headers = {
                   "Accept": "application/vnd.github.v3+json",
                   "X-GitHub-Api-Version": "2022-11-28"
               }
               token = os.environ.get("SECRETS_TOKEN")
               if token:
+                  print("Token found in environment")
                   headers["Authorization"] = f"Bearer {token}"
+              else:
+                  print("Warning: No token found in environment")
               
               results = {}
+              print("Creating data directory...")
               os.makedirs("data", exist_ok=True)
               
               if os.path.exists("data/repository_stats.json"):
+                  print("Loading existing stats file...")
                   with open("data/repository_stats.json", "r", encoding="utf-8") as f:
                       results = json.load(f)
               
-              for filename in os.listdir("infos"):
-                  if filename.endswith(".json"):
-                      with open(f"infos/{filename}", "r", encoding="utf-8") as f:
-                          try:
-                              data = json.load(f)
-                              if "link" in data and "github.com" in data["link"]:
-                                  parts = data["link"].strip("/").split("/")
-                                  if len(parts) >= 2:
-                                      owner = parts[-2]
-                                      repo = parts[-1]
-                                      repo_key = f"{owner}/{repo}"
-                                      
-                                      if get_rate_limit(headers) < 10:
-                                          print(f"Warning: API rate limit is low, skipping remaining repositories")
-                                          break
-                                      
-                                      stats = get_repo_stats(owner, repo, headers)
-                                      if stats:
-                                          results[repo_key] = stats
-                                          print(f"Successfully collected stats for {repo_key}")
-                                      
-                                      time.sleep(1)
-                          except Exception as e:
-                              print(f"Error processing {filename}: {str(e)}")
-                              continue
+              print("Checking for infos directory...")
+              if not os.path.exists("infos"):
+                  print("Error: infos directory not found!")
+                  print(f"Available directories: {os.listdir('.')}")
+              else:
+                  print(f"Found infos directory, contents: {os.listdir('infos')}")
+                  
+                  for filename in os.listdir("infos"):
+                      if filename.endswith(".json"):
+                          print(f"Processing {filename}...")
+                          with open(f"infos/{filename}", "r", encoding="utf-8") as f:
+                              try:
+                                  data = json.load(f)
+                                  print(f"JSON content: {data}")
+                                  if "link" in data and "github.com" in data["link"]:
+                                      parts = data["link"].strip("/").split("/")
+                                      if len(parts) >= 2:
+                                          owner = parts[-2]
+                                          repo = parts[-1]
+                                          repo_key = f"{owner}/{repo}"
+                                          print(f"Found repository: {repo_key}")
+                                          
+                                          rate_limit = get_rate_limit(headers)
+                                          print(f"Current rate limit: {rate_limit}")
+                                          if rate_limit < 10:
+                                              print(f"Warning: API rate limit is low, skipping remaining repositories")
+                                              break
+                                          
+                                          stats = get_repo_stats(owner, repo, headers)
+                                          if stats:
+                                              results[repo_key] = stats
+                                              print(f"Successfully collected stats for {repo_key}")
+                                          else:
+                                              print(f"Failed to get stats for {repo_key}")
+                                          
+                                          time.sleep(1)
+                              except Exception as e:
+                                  print(f"Error processing {filename}: {str(e)}")
+                                  continue
 
+              print("Saving results...")
               with open("data/repository_stats.json", "w", encoding="utf-8") as f:
                   json.dump(results, f, indent=2, ensure_ascii=False)
+              print("Done!")
                   
           except Exception as e:
               print(f"Error: {str(e)}")
               raise e
           EOF
+
+      - name: List data directory
+        run: |
+          echo "Data directory contents:"
+          ls -la data || echo "data directory not found"
 
       - name: Commit and push changes
         run: |
