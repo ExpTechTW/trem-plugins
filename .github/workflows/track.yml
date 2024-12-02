@@ -27,7 +27,7 @@ jobs:
         env:
           SECRETS_TOKEN: ${{ secrets.SECRETS_TOKEN }}
         run: |
-          cat << 'EOF' > script.py
+          python - <<EOF
           import json
           import os
           import requests
@@ -133,8 +133,9 @@ jobs:
                   "Accept": "application/vnd.github.v3+json",
                   "X-GitHub-Api-Version": "2022-11-28"
               }
-              if "SECRETS_TOKEN" in os.environ:
-                  headers["Authorization"] = f"token {os.environ[\"SECRETS_TOKEN\"]}"
+              token = os.environ.get("SECRETS_TOKEN")
+              if token:
+                  headers["Authorization"] = f"Bearer {token}"
               
               results = {}
               os.makedirs("data", exist_ok=True)
@@ -176,7 +177,6 @@ jobs:
               print(f"Error: {str(e)}")
               raise e
           EOF
-          python script.py
 
       - name: Commit and push changes
         run: |
