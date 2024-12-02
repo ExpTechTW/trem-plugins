@@ -1,0 +1,68 @@
+name: Auto Merge PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # 增加更嚴格的條件檢查
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'auto-merge') &&
+      github.event.pull_request.user.login == 'github-actions[bot]' &&
+      startsWith(github.event.pull_request.title, 'Update ') &&
+      endsWith(github.event.pull_request.title, '.json') &&
+      github.event.pull_request.changed_files == 1 &&
+      startsWith(github.event.pull_request.head.ref, 'update-file-')
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate changes
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          # 獲取更改的文件列表
+          FILES=$(gh pr view $PR_NUMBER --json files --jq '.files[].path')
+
+          # 驗證文件路徑
+          for FILE in $FILES; do
+            if [[ ! $FILE =~ ^infos/[a-zA-Z0-9_-]+\.json$ ]]; then
+              echo "Invalid file path: $FILE"
+              exit 1
+            fi
+          done
+
+          # 驗證文件內容格式
+          git fetch origin pull/$PR_NUMBER/head:pr-validate
+          git checkout pr-validate
+
+          for FILE in $FILES; do
+            if ! jq empty "$FILE" 2>/dev/null; then
+              echo "Invalid JSON format in $FILE"
+              exit 1
+            fi
+            
+            # 驗證必要的欄位
+            if ! jq -e 'has("name") and has("version") and has("description")' "$FILE" > /dev/null; then
+              echo "Missing required fields in $FILE"
+              exit 1
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Auto merge pull request
+        if: success()
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          gh pr merge $PR_NUMBER --merge --auto
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
