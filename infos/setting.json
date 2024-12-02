@@ -1,10 +1,10 @@
 {
   "name": "setting",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": {
     "zh_tw": "TREM-Lite Setting Button Plugin"
   },
-  "author": ["cstrikeasia", "ExpTech"],
+  "author": ["cstrikeasia", "ExpTechTW"],
   "auto-enable": true,
   "dependencies": {
     "trem": ">=3.0.0"
