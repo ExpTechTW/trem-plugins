@@ -23,6 +23,15 @@ jobs:
           echo "GitHub Event Context:"
           echo "${{ toJson(github.event) }}"
 
+      - name: Verify PR Author
+        run: |
+          AUTHOR=${{ github.event.pull_request.user.login }}
+          echo "PR Author: $AUTHOR"
+          if [[ "$AUTHOR" != "whes1015" ]]; then
+            echo "PR author is not whes1015. Exiting."
+            exit 1
+          fi
+
       - name: Checkout PR Branch
         uses: actions/checkout@v4
         with:
