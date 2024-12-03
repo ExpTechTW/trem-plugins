@@ -21,9 +21,7 @@ export interface Plugin {
     zh_tw: string;
   };
   author: string[];
-  dependencies: {
-    [key: string]: string;
-  };
+  dependencies: Record<string, string>;
   link: string;
   repository: Repository;
   updated_at: string;
