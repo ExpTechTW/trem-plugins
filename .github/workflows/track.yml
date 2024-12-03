@@ -138,17 +138,14 @@ jobs:
                                   
                                   stats = get_repo_stats(owner, repo, plugin_info)
                                   if stats:
-                                      matched = False
                                       stats["updated_at"] = now
                                       
                                       for i, obj in enumerate(repository_stats):
                                           if obj["name"] == stats["name"]:
                                               repository_stats[i] = stats
-                                              matched = True
                                               print(f"更新倉庫數據: {stats['name']}")
                                               break
-                                      
-                                      if not matched:
+                                      else:
                                           repository_stats.append(stats)
                                           print(f"新增倉庫數據: {stats['name']}")
 
@@ -164,7 +161,7 @@ jobs:
                           if len(parts) >= 2:
                               owner, repo = parts[-2], parts[-1]
                               stats = get_repo_stats(owner, repo, plugin_info)
-                              if stats:
+                              if stats and repository_stats[oldest_index]["name"] != stats["name"]:
                                   stats["updated_at"] = now
                                   old_name = repository_stats[oldest_index]["name"]
                                   repository_stats[oldest_index] = stats
