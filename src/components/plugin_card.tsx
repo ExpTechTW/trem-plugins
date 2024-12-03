@@ -4,7 +4,7 @@ import { SiGithub } from '@icons-pack/react-simple-icons';
 import Link from 'next/link';
 import GithubPeople from './github_people';
 import { ChevronDown, Download, Tag } from 'lucide-react';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, formatTimeString } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
@@ -22,7 +22,15 @@ export default function PluginCard({ plugin }: Props) {
           <div className="flex flex-col gap-2">
             <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
             <CardDescription>
-              <GithubPeople people={plugin.author} />
+              <div className="flex flex-col gap-2">
+
+                <span>
+                  更新於
+                  {' '}
+                  {formatTimeString(plugin.updated_at)}
+                </span>
+                <GithubPeople people={plugin.author} />
+              </div>
             </CardDescription>
           </div>
           <div className="flex flex-col justify-start">

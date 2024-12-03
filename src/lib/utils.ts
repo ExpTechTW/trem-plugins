@@ -50,3 +50,7 @@ export const formatNumber = (n: number) => {
 
   return ((f * 100) / 100).toString() + u;
 };
+
+export const formatTimeString = (time: string) => {
+  return new Date(time).toLocaleString();
+};
