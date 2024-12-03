@@ -38,7 +38,7 @@ export default function Home() {
         const lastFetch = localStorage.getItem('lastPluginsFetch');
         const now = Date.now();
 
-        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 3600000) {
+        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 600000) {
           const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
           setPlugins(parsedPlugins);
           setFilteredPlugins(parsedPlugins);
