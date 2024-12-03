@@ -1,0 +1,14 @@
+{
+  "name": "disable-report-permanent",
+  "version": "1.0.0",
+  "description": {
+    "zh_tw": "關閉總是顯示地震報告",
+    "zh-Hant": "關閉總是顯示地震報告"
+  },
+  "author": ["whes1015"],
+  "dependencies": {
+    "trem": ">=3.1.0-rc.2"
+  },
+  "resources": ["AGPL-3.0"],
+  "link": "https://github.com/ExpTechTW/trem-disable-report-permanent-plugin"
+}
