@@ -1,1 +1,93 @@
-[{"name":"EEW-Logger","version":"1.0.2","description":{"zh_tw":"EEW 原始資料 紀錄器"},"author":["yayacat"],"dependencies":{"trem":">=3.1.0","config":">=1.0.0"},"resources":["AGPL-3.0"],"link":"https://github.com/ExpTechTW/TREM-EEW-Logger-Plugin","status":"stable","repository":{"full_name":"ExpTechTW/TREM-EEW-Logger-Plugin","releases":{"total_count":0,"total_downloads":0,"releases":[]}},"updated_at":"2024-12-03 08:44:35"},{"name":"websocket","version":"1.0.4","description":{"zh_tw":"TREM-Lite websocket Plugin"},"author":["whes1015"],"dependencies":{"trem":">=3.1.0","exptech":">=1.0.0","config":">=1.0.0"},"resources":["AGPL-3.0"],"link":"https://github.com/ExpTechTW/TREM-Websocket-Plugin","repository":{"full_name":"ExpTechTW/TREM-Websocket-Plugin","releases":{"total_count":0,"total_downloads":0,"releases":[]}},"updated_at":"2024-12-03 08:44:35"},{"name":"config","version":"1.0.1","description":{"zh_tw":"一個讀取 yml 檔案的擴充"},"author":["whes1015"],"dependencies":{"trem":">=3.1.0-rc.1"},"resources":["AGPL-3.0"],"link":"https://github.com/ExpTechTW/trem-config-plugin","status":"stable","repository":{"full_name":"ExpTechTW/trem-config-plugin","releases":{"total_count":0,"total_downloads":0,"releases":[]}},"updated_at":"2024-12-03 08:18:11"},{"name":"setting","version":"1.0.3","description":{"zh_tw":"TREM-Lite Setting Button Plugin"},"author":["cstrikeasia","ExpTechTW"],"dependencies":{"trem":">=3.0.0"},"resources":["AGPL-3.0"],"link":"https://github.com/ExpTechTW/TREM-Setting-Plugin","status":"stable","repository":{"full_name":"ExpTechTW/TREM-Setting-Plugin","releases":{"total_count":2,"total_downloads":11,"releases":[{"tag_name":"v1.0.3","name":"v1.0.3","downloads":0,"published_at":"2024-12-02T22:43:16Z"},{"tag_name":"v1.0.2","name":"v1.0.2","downloads":11,"published_at":"2024-12-01T22:03:30Z"}]}},"updated_at":"2024-12-03 06:44:09"},{"name":"language","version":"1.0.0","description":{"zh_tw":"TREM-Lite Language Plugin"},"author":["cstrikeasia"],"dependencies":{"trem":">=3.0.0"},"resources":["AGPL-3.0"],"link":"https://github.com/ExpTechTW/TREM-Language-Plugin","status":"stable","repository":{"full_name":"ExpTechTW/TREM-Language-Plugin","releases":{"total_count":0,"total_downloads":0,"releases":[]}},"updated_at":"2024-12-03 04:07:22"}]
+[
+  {
+    "name": "EEW-Logger",
+    "version": "1.0.2",
+    "description": { "zh_tw": "EEW 原始資料 紀錄器" },
+    "author": ["yayacat"],
+    "dependencies": { "trem": ">=3.1.0", "config": ">=1.0.0" },
+    "resources": ["AGPL-3.0"],
+    "link": "https://github.com/ExpTechTW/TREM-EEW-Logger-Plugin",
+    "repository": {
+      "full_name": "ExpTechTW/TREM-EEW-Logger-Plugin",
+      "releases": { "total_count": 0, "total_downloads": 0, "releases": [] }
+    },
+    "updated_at": "2024-12-03 08:44:35"
+  },
+  {
+    "name": "websocket",
+    "version": "1.0.4",
+    "description": { "zh_tw": "TREM-Lite websocket Plugin" },
+    "author": ["whes1015"],
+    "dependencies": {
+      "trem": ">=3.1.0",
+      "exptech": ">=1.0.0",
+      "config": ">=1.0.0"
+    },
+    "resources": ["AGPL-3.0"],
+    "link": "https://github.com/ExpTechTW/TREM-Websocket-Plugin",
+    "repository": {
+      "full_name": "ExpTechTW/TREM-Websocket-Plugin",
+      "releases": { "total_count": 0, "total_downloads": 0, "releases": [] }
+    },
+    "updated_at": "2024-12-03 08:44:35"
+  },
+  {
+    "name": "config",
+    "version": "1.0.1",
+    "description": { "zh_tw": "一個讀取 yml 檔案的擴充" },
+    "author": ["whes1015"],
+    "dependencies": { "trem": ">=3.1.0-rc.1" },
+    "resources": ["AGPL-3.0"],
+    "link": "https://github.com/ExpTechTW/trem-config-plugin",
+    "repository": {
+      "full_name": "ExpTechTW/trem-config-plugin",
+      "releases": { "total_count": 0, "total_downloads": 0, "releases": [] }
+    },
+    "updated_at": "2024-12-03 08:18:11"
+  },
+  {
+    "name": "setting",
+    "version": "1.0.3",
+    "description": { "zh_tw": "TREM-Lite Setting Button Plugin" },
+    "author": ["cstrikeasia", "ExpTechTW"],
+    "dependencies": { "trem": ">=3.0.0" },
+    "resources": ["AGPL-3.0"],
+    "link": "https://github.com/ExpTechTW/TREM-Setting-Plugin",
+    "repository": {
+      "full_name": "ExpTechTW/TREM-Setting-Plugin",
+      "releases": {
+        "total_count": 2,
+        "total_downloads": 11,
+        "releases": [
+          {
+            "tag_name": "v1.0.3",
+            "name": "v1.0.3",
+            "downloads": 0,
+            "published_at": "2024-12-02T22:43:16Z"
+          },
+          {
+            "tag_name": "v1.0.2",
+            "name": "v1.0.2",
+            "downloads": 11,
+            "published_at": "2024-12-01T22:03:30Z"
+          }
+        ]
+      }
+    },
+    "updated_at": "2024-12-03 06:44:09"
+  },
+  {
+    "name": "language",
+    "version": "1.0.0",
+    "description": { "zh_tw": "TREM-Lite Language Plugin" },
+    "author": ["cstrikeasia"],
+    "dependencies": { "trem": ">=3.0.0" },
+    "resources": ["AGPL-3.0"],
+    "link": "https://github.com/ExpTechTW/TREM-Language-Plugin",
+    "repository": {
+      "full_name": "ExpTechTW/TREM-Language-Plugin",
+      "releases": { "total_count": 0, "total_downloads": 0, "releases": [] }
+    },
+    "updated_at": "2024-12-03 04:07:22"
+  }
+]
