@@ -1,9 +1,10 @@
 {
   "name": "language",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": {
     "zh_tw": "TREM-Lite Language Plugin"
   },
+  "loader": ["setting", "index", "yaml"],
   "author": ["cstrikeasia"],
   "dependencies": {
     "trem": ">=3.0.0"
