@@ -153,19 +153,17 @@ jobs:
                       print(f"處理 {file_path} 時發生錯誤: {str(e)}")
                       continue
               
-              if oldest_index is not None and changed_info_files:
-                  with open(changed_info_files[-1], "r", encoding="utf-8") as f:
-                      plugin_info = json.load(f)
-                      if "link" in plugin_info and "github.com" in plugin_info["link"]:
-                          parts = plugin_info["link"].strip("/").split("/")
-                          if len(parts) >= 2:
-                              owner, repo = parts[-2], parts[-1]
-                              stats = get_repo_stats(owner, repo, plugin_info)
-                              if stats and repository_stats[oldest_index]["name"] != stats["name"]:
-                                  stats["updated_at"] = now
-                                  old_name = repository_stats[oldest_index]["name"]
-                                  repository_stats[oldest_index] = stats
-                                  print(f"更新最舊的倉庫數據 (索引 {oldest_index}): 從 {old_name} 到 {stats['name']}")
+              if oldest_index is not None:
+                  oldest_record = repository_stats[oldest_index]
+                  if "link" in oldest_record and "github.com" in oldest_record["link"]:
+                      parts = oldest_record["link"].strip("/").split("/")
+                      if len(parts) >= 2:
+                          owner, repo = parts[-2], parts[-1]
+                          stats = get_repo_stats(owner, repo, oldest_record)
+                          if stats:
+                              oldest_record["repository"] = stats["repository"]
+                              oldest_record["updated_at"] = now
+                              print(f"更新最舊的倉庫狀態: {oldest_record['name']}")
 
               return repository_stats
 
