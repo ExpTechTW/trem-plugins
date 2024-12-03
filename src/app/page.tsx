@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 import {
   Search,
@@ -11,22 +11,22 @@ import {
   Sun,
   RefreshCw,
   AlertCircle,
-} from 'lucide-react';
-import PluginCard from '@/components/plugin_card';
-import type { Plugin } from '@/modal/plugin';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+} from "lucide-react";
+import PluginCard from "@/components/plugin_card";
+import type { Plugin } from "@/modal/plugin";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function Home() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [filteredPlugins, setFilteredPlugins] = useState<Plugin[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showStable, setShowStable] = useState(true);
   const [showRc, setShowRc] = useState(false);
   const [showPre, setShowPre] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [error, setError] = useState<string | null>(null);
   const maxRetries = 3;
 
@@ -34,8 +34,8 @@ export default function Home() {
     async (retry = 0) => {
       try {
         setError(null);
-        const cachedPlugins = localStorage.getItem('tremPlugins');
-        const lastFetch = localStorage.getItem('lastPluginsFetch');
+        const cachedPlugins = localStorage.getItem("tremPlugins");
+        const lastFetch = localStorage.getItem("lastPluginsFetch");
         const now = Date.now();
 
         if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 3600000) {
@@ -47,51 +47,48 @@ export default function Home() {
         }
 
         const response = await fetch(
-          'https://raw.githubusercontent.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
+          "https://raw.githubusercontent.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json"
         );
 
-        const pluginsData = await response.json() as Plugin[];
+        const pluginsData = (await response.json()) as Plugin[];
 
         if (pluginsData.length === 0) {
-          throw new Error('無法載入擴充數據');
+          throw new Error("無法載入擴充數據");
         }
 
-        localStorage.setItem('tremPlugins', JSON.stringify(pluginsData));
-        localStorage.setItem('lastPluginsFetch', now.toString());
+        localStorage.setItem("tremPlugins", JSON.stringify(pluginsData));
+        localStorage.setItem("lastPluginsFetch", now.toString());
 
         setPlugins(pluginsData);
         setFilteredPlugins(pluginsData);
         setIsLoading(false);
-      }
-      catch (error) {
-        console.error('Error:', error);
+      } catch (error) {
+        console.error("Error:", error);
 
         if (retry < maxRetries) {
           setError(`載入失敗 (${retry + 1}/${maxRetries})，重試中...`);
           setTimeout(() => {
             void fetchPlugins(retry + 1);
           }, 1000 * (retry + 1));
-        }
-        else {
-          const cachedData = localStorage.getItem('tremPlugins');
+        } else {
+          const cachedData = localStorage.getItem("tremPlugins");
           if (cachedData) {
             const parsed = JSON.parse(cachedData) as Plugin[];
             setPlugins(parsed);
             setFilteredPlugins(parsed);
-            setError('使用緩存資料（可能不是最新）');
-          }
-          else {
-            setError('無法載入擴充資料，請重新整理頁面');
+            setError("使用緩存資料（可能不是最新）");
+          } else {
+            setError("無法載入擴充資料，請重新整理頁面");
           }
         }
         setIsLoading(false);
       }
     },
-    [maxRetries],
+    [maxRetries]
   );
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
+    document.documentElement.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
 
   useEffect(() => {
@@ -114,26 +111,26 @@ export default function Home() {
     (term: string) => {
       let filtered = plugins.filter(
         (plugin) =>
-          (plugin.name.toLowerCase().includes(term.toLowerCase())
-            || plugin.description.zh_tw
+          (plugin.name.toLowerCase().includes(term.toLowerCase()) ||
+            plugin.description.zh_tw
               .toLowerCase()
-              .includes(term.toLowerCase())
-              || plugin.author.some((author) =>
-                author.toLowerCase().includes(term.toLowerCase()),
-              ))
-              && ((showStable && plugin.status === 'stable')
-                || (showRc && plugin.status === 'rc')
-                || (showPre && plugin.status === 'pre')),
+              .includes(term.toLowerCase()) ||
+            plugin.author.some((author) =>
+              author.toLowerCase().includes(term.toLowerCase())
+            )) &&
+          ((showStable && !plugin.version.includes("-")) ||
+            (showRc && plugin.version.includes("rc")) ||
+            (showPre && plugin.version.includes("pre")))
       );
 
       filtered = [...filtered].sort((a, b) => {
         const comparison = a.name.localeCompare(b.name);
-        return sortOrder === 'asc' ? comparison : -comparison;
+        return sortOrder === "asc" ? comparison : -comparison;
       });
 
       setFilteredPlugins(filtered);
     },
-    [plugins, showStable, showRc, showPre, sortOrder],
+    [plugins, showStable, showRc, showPre, sortOrder]
   );
 
   useEffect(() => {
@@ -199,33 +196,27 @@ export default function Home() {
       )}
 
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-foreground">
-          TREM 擴充
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground">TREM 擴充</h1>
         <div className="flex gap-4">
           <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
             className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            {viewMode === 'grid'
-              ? (
-                  <List className="h-5 w-5" />
-                )
-              : (
-                  <Grid className="h-5 w-5" />
-                )}
+            {viewMode === "grid" ? (
+              <List className="h-5 w-5" />
+            ) : (
+              <Grid className="h-5 w-5" />
+            )}
           </button>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            {isDarkMode
-              ? (
-                  <Sun className="h-5 w-5" />
-                )
-              : (
-                  <Moon className="h-5 w-5" />
-                )}
+            {isDarkMode ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </button>
         </div>
       </div>
@@ -234,25 +225,19 @@ export default function Home() {
         <Card>
           <CardHeader className="pb-2">擴充總數</CardHeader>
           <CardContent>
-            <span className="text-3xl font-bold">
-              {stats.totalPlugins}
-            </span>
+            <span className="text-3xl font-bold">{stats.totalPlugins}</span>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">總下載量</CardHeader>
           <CardContent>
-            <span className="text-3xl font-bold">
-              {stats.totalDownloads}
-            </span>
+            <span className="text-3xl font-bold">{stats.totalDownloads}</span>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">開發者數量</CardHeader>
           <CardContent>
-            <span className="text-3xl font-bold">
-              {stats.totalAuthors}
-            </span>
+            <span className="text-3xl font-bold">{stats.totalAuthors}</span>
           </CardContent>
         </Card>
       </div>
@@ -274,8 +259,8 @@ export default function Home() {
             onClick={handleStableToggle}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showStable
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
             穩定版
@@ -285,8 +270,8 @@ export default function Home() {
             onClick={handleRcToggle}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showRc
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
             發布候選
@@ -296,8 +281,8 @@ export default function Home() {
             onClick={handlePreToggle}
             className={`px-4 py-2 rounded-lg transition-colors ${
               showPre
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
             預覽版
@@ -306,24 +291,26 @@ export default function Home() {
 
         <button
           onClick={() => {
-            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
             filterPlugins(searchTerm);
           }}
           className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
         >
           <SortAsc className="h-5 w-5" />
-          {sortOrder === 'asc' ? '升序' : '降序'}
+          {sortOrder === "asc" ? "升序" : "降序"}
         </button>
       </div>
 
       <div
         className={`${
-          viewMode === 'grid'
-            ? 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'
-            : 'flex flex-col gap-4'
+          viewMode === "grid"
+            ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+            : "flex flex-col gap-4"
         }`}
       >
-        {filteredPlugins.map((plugin) => <PluginCard key={plugin.name} plugin={plugin} />)}
+        {filteredPlugins.map((plugin) => (
+          <PluginCard key={plugin.name} plugin={plugin} />
+        ))}
       </div>
 
       {filteredPlugins.length === 0 && (
@@ -336,9 +323,7 @@ export default function Home() {
 
       <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
-          © 2024 TREM Plugins. 所有數據更新於
-          {' '}
-          {new Date().toLocaleDateString()}
+          © 2024 TREM Plugins. 所有數據更新於 {new Date().toLocaleDateString()}
         </p>
       </footer>
     </main>

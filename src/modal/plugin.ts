@@ -25,7 +25,6 @@ export interface Plugin {
     [key: string]: string;
   };
   link: string;
-  status: 'stable' | 'rc' | 'pre';
   repository: Repository;
   updated_at: string;
 }
