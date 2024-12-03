@@ -1,0 +1,13 @@
+{
+  "name": "logger",
+  "version": "1.0.0",
+  "description": {
+    "zh_tw": "擴充日誌紀錄器"
+  },
+  "author": ["whes1015"],
+  "dependencies": {
+    "trem": ">=3.1.0-rc.1"
+  },
+  "resources": ["AGPL-3.0"],
+  "link": "https://github.com/ExpTechTW/trem-logger-plugin"
+}
