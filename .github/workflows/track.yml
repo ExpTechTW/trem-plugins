@@ -69,7 +69,6 @@ jobs:
               return [f for f in result.stdout.strip().split('\n') if f.startswith('infos/') and f.endswith('.json')]
 
           def get_repo_stats(owner, repo, plugin_info):
-              """獲取指定 GitHub 倉庫的統計數據並整合插件信息"""
               headers = {
                   "Authorization": f"token {os.environ.get('GITHUB_TOKEN')}",
                   "Accept": "application/vnd.github.v3+json"
@@ -98,13 +97,6 @@ jobs:
                   })
                   total_downloads += release_downloads
 
-              def get_status(version):
-                  if "-pre" in version:
-                      return "pre"
-                  elif "-rc" in version:
-                      return "rc"
-                  return "stable"
-
               return {
                   "name": plugin_info["name"],
                   "version": plugin_info["version"],
@@ -113,7 +105,6 @@ jobs:
                   "dependencies": plugin_info.get("dependencies", {}),
                   "resources": plugin_info.get("resources", []),
                   "link": plugin_info["link"],
-                  "status": get_status(plugin_info["version"]),
                   "repository": {
                       "full_name": repo_data["full_name"],
                       "releases": {
@@ -124,33 +115,19 @@ jobs:
                   }
               }
 
-          try:
-              print("初始化資料...")
-              os.makedirs("data", exist_ok=True)
-
-              # 獲取 PR 中修改的文件
-              changed_info_files = get_changed_files()
-              
-              if not changed_info_files:
-                  print("No plugin info files were changed in this PR")
-                  exit(0)
-
-              # 讀取現有的 stats 文件
-              stats_file = "data/repository_stats.json"
-              repository_stats = []
-              if os.path.exists(stats_file):
-                  with open(stats_file, "r", encoding="utf-8") as f:
-                      repository_stats = json.load(f)
-
+          def process_plugin_files(repository_stats, changed_info_files):
+              updated_indices = set()
               now = datetime.now(timezone("Asia/Taipei")).strftime("%Y-%m-%d %H:%M:%S")
 
-              # 根據 updated_at 排序，找出最舊的記錄
-              repository_stats.sort(key=lambda x: x.get("updated_at", ""))
+              oldest_index = None
+              oldest_time = None
               
-              # 儲存更新過的索引，避免重複更新
-              updated_indices = set()
-              
-              # 先處理 PR 中修改的插件文件
+              for i, obj in enumerate(repository_stats):
+                  current_time = obj.get("updated_at", "")
+                  if oldest_time is None or current_time < oldest_time:
+                      oldest_time = current_time
+                      oldest_index = i
+
               for file_path in changed_info_files:
                   try:
                       with open(file_path, "r", encoding="utf-8") as f:
@@ -163,59 +140,48 @@ jobs:
                                   
                                   stats = get_repo_stats(owner, repo, plugin_info)
                                   if stats:
-                                      matched = False
-                                      
-                                      # 更新匹配的記錄
+                                      stats["updated_at"] = now
                                       for i, obj in enumerate(repository_stats):
                                           if obj["name"] == stats["name"]:
                                               repository_stats[i] = stats
-                                              repository_stats[i]["updated_at"] = now
                                               updated_indices.add(i)
-                                              matched = True
                                               print(f"更新倉庫數據: {stats['name']}")
                                               break
-                                              
-                                      if not matched:
-                                          stats["updated_at"] = now
-                                          repository_stats.append(stats)
-                                          updated_indices.add(len(repository_stats) - 1)
-                                          print(f"新增倉庫數據: {stats['name']}")
+                                      else:
+                                          if oldest_index is not None and oldest_index not in updated_indices:
+                                              repository_stats[oldest_index] = stats
+                                              updated_indices.add(oldest_index)
+                                              print(f"更新最舊的倉庫數據 (索引 {oldest_index}): 從 {repository_stats[oldest_index]['name']} 到 {stats['name']}")
+                                          else:
+                                              repository_stats.append(stats)
+                                              print(f"新增倉庫數據: {stats['name']}")
+
                   except Exception as e:
                       print(f"處理 {file_path} 時發生錯誤: {str(e)}")
                       continue
 
-              # 更新最舊的記錄（排除已更新的記錄）
-              if repository_stats:
-                  oldest_index = None
-                  oldest_time = None
-                  
-                  for i, obj in enumerate(repository_stats):
-                      if i in updated_indices:
-                          continue
-                      current_time = obj.get("updated_at", "")
-                      if oldest_time is None or current_time < oldest_time:
-                          oldest_time = current_time
-                          oldest_index = i
+              return repository_stats
 
-                  if oldest_index is not None and oldest_index not in updated_indices:
-                      # 獲取最後一個修改的插件的資訊來更新最舊的記錄
-                      if changed_info_files:
-                          with open(changed_info_files[-1], "r", encoding="utf-8") as f:
-                              plugin_info = json.load(f)
-                              if "link" in plugin_info and "github.com" in plugin_info["link"]:
-                                  parts = plugin_info["link"].strip("/").split("/")
-                                  if len(parts) >= 2:
-                                      owner, repo = parts[-2], parts[-1]
-                                      stats = get_repo_stats(owner, repo, plugin_info)
-                                      if stats:
-                                          stats["updated_at"] = now
-                                          repository_stats[oldest_index] = stats
-                                          print(f"更新最舊的倉庫數據: {repository_stats[oldest_index]['name']}")
+          try:
+              print("初始化資料...")
+              os.makedirs("data", exist_ok=True)
 
-              # 根據 updated_at 排序
+              changed_info_files = get_changed_files()
+              
+              if not changed_info_files:
+                  print("No plugin info files were changed in this PR")
+                  exit(0)
+
+              stats_file = "data/repository_stats.json"
+              repository_stats = []
+              if os.path.exists(stats_file):
+                  with open(stats_file, "r", encoding="utf-8") as f:
+                      repository_stats = json.load(f)
+
+              repository_stats = process_plugin_files(repository_stats, changed_info_files)
+
               repository_stats.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
 
-              # 壓縮成一行輸出
               with open(stats_file, "w", encoding="utf-8") as f:
                   json.dump(repository_stats, f, ensure_ascii=False, separators=(',', ':'))
 
