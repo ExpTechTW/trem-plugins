@@ -1,6 +1,6 @@
 'use client';
 
-import { Moon, Sun, RefreshCw, AlertCircle } from 'lucide-react';
+import { Moon, Sun, AlertCircle, Loader2Icon } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import PluginList from '@/components/plugin_list';
@@ -102,41 +102,26 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className={`
-        flex min-h-screen items-center justify-center bg-gray-100
-        dark:bg-gray-900
-      `}
-      >
-        <div className="space-y-4 text-center">
-          <RefreshCw className="mx-auto h-8 w-8 animate-spin text-blue-500" />
+      <div className="grid h-svh w-svw items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2Icon className="animate-spin" />
           <div className="text-lg">載入中...</div>
         </div>
       </div>
     );
   }
 
-  if (error && !plugins.length) {
+  if (error) {
     return (
-      <div className={`
-        flex min-h-screen items-center justify-center bg-gray-100
-        dark:bg-gray-900
-      `}
-      >
-        <div className={`
-          mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-lg
-          dark:bg-gray-800
-        `}
-        >
-          <div className="space-y-4 text-center">
-            <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
-            <h2 className="text-xl font-semibold">{error}</h2>
-            <Button
-              onClick={() => void fetchPlugins()}
-              variant="default"
-            >
-              重試
-            </Button>
-          </div>
+      <div className="grid h-svh w-svw items-center justify-center">
+        <div className="flex items-center gap-2">
+          <div>{error}</div>
+          <Button
+            onClick={() => void fetchPlugins()}
+            variant="default"
+          >
+            重試
+          </Button>
         </div>
       </div>
     );
@@ -210,7 +195,6 @@ export default function Home() {
           </CardHeader>
         </Card>
       </div>
-
       <PluginList plugins={plugins} />
 
       <footer className="mt-12 text-center text-sm text-muted-foreground">
