@@ -10,29 +10,55 @@ import { Button } from '@/components/ui/button';
 import ReadmeTab from '@/components/readme';
 import { InstallButtons } from '@/components/install';
 
-async function getPlugins(): Promise<Plugin[]> {
+async function fetchPlugins(): Promise<Plugin[]> {
   try {
+    if (typeof window !== 'undefined') {
+      const cachedPlugins = localStorage.getItem('tremPlugins');
+      const lastFetch = localStorage.getItem('lastPluginsFetch');
+      const now = Date.now();
+
+      if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 600000) {
+        return JSON.parse(cachedPlugins) as Plugin[];
+      }
+    }
+
     const response = await fetch(
       'https://raw.githubusercontent.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
       { next: { revalidate: 3600 } },
     );
-    return response.json() as Promise<Plugin[]>;
+
+    const pluginsData = await response.json() as Plugin[];
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tremPlugins', JSON.stringify(pluginsData));
+      localStorage.setItem('lastPluginsFetch', Date.now().toString());
+    }
+
+    return pluginsData;
   }
   catch (error) {
     console.error('Error fetching plugins:', error);
+
+    if (typeof window !== 'undefined') {
+      const cachedData = localStorage.getItem('tremPlugins');
+      if (cachedData) {
+        return JSON.parse(cachedData) as Plugin[];
+      }
+    }
+
     return [];
   }
 }
 
 export async function generateStaticParams() {
-  const plugins = await getPlugins();
+  const plugins = await fetchPlugins();
   return plugins.map((plugin) => ({
     name: plugin.name,
   }));
 }
 
 async function getPluginData(name: string): Promise<Plugin | null> {
-  const plugins = await getPlugins();
+  const plugins = await fetchPlugins();
   return plugins.find((plugin) => plugin.name === name) || null;
 }
 
