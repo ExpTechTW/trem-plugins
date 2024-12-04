@@ -1,12 +1,12 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import Link from 'next/link';
 import GithubPeople from './github_people';
 import { ChevronDown, Download, Tag } from 'lucide-react';
 import { formatNumber, formatTimeString } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { useRouter } from 'next/navigation';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -15,8 +15,17 @@ interface Props {
 }
 
 export default function PluginCard({ plugin }: Props) {
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    router.push(`/plugins/${plugin.name}`);
+  };
+
   return (
-    <Card>
+    <Card
+      onClick={handleCardClick}
+      className="transition-colors hover:bg-accent/50 cursor-pointer"
+    >
       <CardHeader>
         <div className="flex justify-between">
           <div className="flex flex-col gap-2">
@@ -38,9 +47,15 @@ export default function PluginCard({ plugin }: Props) {
             </CardDescription>
           </div>
           <div className="flex flex-col justify-start">
-            <Link href={plugin.link} className="p-1 text-muted-foreground hover:text-foreground transition-[color]">
+            <a
+              href={plugin.link}
+              className="p-1 text-muted-foreground hover:text-foreground transition-[color]"
+              onClick={(e) => e.stopPropagation()}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <SiGithub size={28} />
-            </Link>
+            </a>
           </div>
         </div>
       </CardHeader>
@@ -77,7 +92,7 @@ export default function PluginCard({ plugin }: Props) {
           </div>
           {plugin.repository.releases.releases.length > 0
           && (
-            <div className="flex">
+            <div className="flex" onClick={(e) => e.stopPropagation()}>
               <Button className={plugin.repository.releases.releases.length > 1 ? 'rounded-e-none' : ''} asChild>
                 <a
                   href={`https://github.com/${plugin.repository.full_name}/releases/latest/download/${plugin.name}.trem`}

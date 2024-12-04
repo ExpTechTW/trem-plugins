@@ -23,8 +23,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const darkMode = localStorage.getItem('darkMode');
-    return darkMode === 'true' || false;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true';
+    }
+    return false;
   });
   const [showStable, setShowStable] = useState(true);
   const [showRc, setShowRc] = useState(false);
@@ -97,13 +99,10 @@ export default function Home() {
     setIsDarkMode((prev) => {
       const newValue = !prev;
       localStorage.setItem('darkMode', String(newValue));
+      document.documentElement.classList.toggle('dark', newValue);
       return newValue;
     });
   };
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
 
   useEffect(() => {
     void fetchPlugins();
