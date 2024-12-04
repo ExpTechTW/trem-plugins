@@ -29,8 +29,9 @@ export default function PluginCard({ plugin }: Props) {
       className={`
         flex h-full cursor-pointer flex-col
         transition-[color_background-color_border-color]
-        glow:border-primary/40 glow:bg-primary/[.12]
-        hover:border-primary/20 hover:bg-primary/[.08]
+        dark:glow:bg-primary/[.12] dark:hover:bg-primary/[.08]
+        glow:border-primary/40 glow:bg-primary/[.08]
+        hover:border-primary/20 hover:bg-primary/[.04]
       `}
     >
       <CardHeader>
