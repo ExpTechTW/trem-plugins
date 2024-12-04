@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import GithubPeople from './github_people';
-import { ChevronDown, Download, Tag } from 'lucide-react';
-import { formatNumber } from '@/lib/utils';
+import { ChevronDown, Download, Tag, Clock } from 'lucide-react';
+import { formatNumber, getRelativeTime, formatTimeString } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 import type { Plugin } from '@/modal/plugin';
@@ -45,6 +45,30 @@ export default function PluginCard({ plugin }: Props) {
             >
               <SiGithub size={28} />
             </a>
+          </div>
+
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground text-sm pt-2">
+          <Clock size={12} className="shrink-0" />
+          <div>
+            <span>最後更新 </span>
+            {plugin.repository.releases.releases[0]?.published_at
+              ? (
+                  <div className="group relative inline-block">
+                    <span className="cursor-help hover:text-foreground transition-colors">
+                      {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
+                    </span>
+                    <span className="invisible group-hover:visible absolute left-0 -top-8
+          bg-popover px-2.5 py-1.5 rounded-md text-sm shadow-md whitespace-nowrap
+          border z-10"
+                    >
+                      {formatTimeString(plugin.repository.releases.releases[0].published_at)}
+                    </span>
+                  </div>
+                )
+              : (
+                  <span>尚未發布</span>
+                )}
           </div>
         </div>
       </CardHeader>
