@@ -1,0 +1,6 @@
+{
+  "message": "Resource not accessible by integration",
+  "documentation_url": "https://docs.github.com/rest/metrics/traffic#get-page-views",
+  "status": "403",
+  "collected_at": "2024-12-04T15:00:25.870759"
+}
