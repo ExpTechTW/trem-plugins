@@ -49,6 +49,6 @@ jobs:
       - name: Auto merge pull request
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          gh pr merge $PR_NUMBER --merge --auto || echo "Auto merge failed for PR #$PR_NUMBER"
+          gh pr merge $PR_NUMBER --merge --auto --delete-branch || echo "Auto merge failed for PR #$PR_NUMBER"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
