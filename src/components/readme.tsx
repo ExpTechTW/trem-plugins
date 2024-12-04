@@ -75,7 +75,7 @@ export default function ReadmeTab({ plugin }: ReadmeProps) {
           rehypePlugins={[rehypeRaw]}
           remarkPlugins={[remarkGfm]}
           components={{
-            img: ({ node, ...props }) => (
+            img: ({ ...props }) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img {...props} alt={props.alt || ''} className="inline-block" />
             ),

@@ -2,24 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Search,
   Moon,
   Sun,
   RefreshCw,
   AlertCircle,
-  ArrowDown,
-  ArrowUp,
 } from 'lucide-react';
-import PluginCard from '@/components/plugin_card';
 import type { Plugin } from '@/modal/plugin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import PluginList from '@/components/plugin_list';
 
 export default function Home() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
-  const [filteredPlugins, setFilteredPlugins] = useState<Plugin[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -27,7 +22,6 @@ export default function Home() {
     }
     return false;
   });
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [error, setError] = useState<string | null>(null);
   const maxRetries = 3;
 
@@ -42,7 +36,6 @@ export default function Home() {
         if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 600000) {
           const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
           setPlugins(parsedPlugins);
-          setFilteredPlugins(parsedPlugins);
           setIsLoading(false);
           return;
         }
@@ -61,7 +54,6 @@ export default function Home() {
         localStorage.setItem('lastPluginsFetch', now.toString());
 
         setPlugins(pluginsData);
-        setFilteredPlugins(pluginsData);
         setIsLoading(false);
       }
       catch (error) {
@@ -78,7 +70,6 @@ export default function Home() {
           if (cachedData) {
             const parsed = JSON.parse(cachedData) as Plugin[];
             setPlugins(parsed);
-            setFilteredPlugins(parsed);
             setError('使用緩存資料（可能不是最新）');
           }
           else {
@@ -100,61 +91,9 @@ export default function Home() {
     });
   };
 
-  const filterPlugins = useCallback(
-    (term: string) => {
-      const filtered = plugins.filter((plugin) => {
-        if (!plugin) return false;
-
-        const searchFields: string[] = [];
-
-        if (typeof plugin.name === 'string') {
-          searchFields.push(plugin.name.toLowerCase());
-        }
-
-        if (plugin.description?.zh_tw && typeof plugin.description.zh_tw === 'string') {
-          searchFields.push(plugin.description.zh_tw.toLowerCase());
-        }
-
-        if (Array.isArray(plugin.author)) {
-          searchFields.push(...plugin.author
-            .filter((author): author is string => typeof author === 'string')
-            .map((author) => author.toLowerCase()),
-          );
-        }
-
-        const searchTerms = term.toLowerCase().split(' ').filter(Boolean);
-
-        return searchTerms.every((searchTerm) =>
-          searchFields.some((field) => field.includes(searchTerm)),
-        );
-      });
-
-      const sortedPlugins = [...filtered].sort((a, b) => {
-        const downloadsA = Number(a?.repository?.releases?.total_downloads) || 0;
-        const downloadsB = Number(b?.repository?.releases?.total_downloads) || 0;
-        return sortOrder === 'asc'
-          ? downloadsA - downloadsB
-          : downloadsB - downloadsA;
-      });
-
-      setFilteredPlugins(sortedPlugins);
-    },
-    [plugins, sortOrder],
-  );
-
   useEffect(() => {
     void fetchPlugins();
   }, [fetchPlugins]);
-
-  useEffect(() => {
-    filterPlugins(searchTerm);
-  }, [filterPlugins, searchTerm]);
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value;
-    setSearchTerm(term);
-    filterPlugins(term);
-  };
 
   const stats = {
     totalPlugins: plugins.length,
@@ -245,47 +184,7 @@ export default function Home() {
         </Card>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="搜尋擴充... (支援多關鍵字搜尋，用空格分隔)"
-            value={searchTerm}
-            onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background focus:ring-2 focus:ring-ring focus:border-ring"
-          />
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={() => {
-            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-            filterPlugins(searchTerm);
-          }}
-          className="flex items-center gap-2"
-        >
-          {sortOrder === 'asc' ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
-          下載量
-          {sortOrder === 'asc' ? '升序' : '降序'}
-        </Button>
-      </div>
-
-      <div
-        className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-      >
-        {filteredPlugins.map((plugin) => (
-          <PluginCard key={plugin.name} plugin={plugin} />
-        ))}
-      </div>
-
-      {filteredPlugins.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-xl text-muted-foreground">
-            沒有找到符合條件的擴充
-          </p>
-        </div>
-      )}
+      <PluginList plugins={plugins} />
 
       <footer className="mt-12 text-center text-sm text-muted-foreground">
         <p>
