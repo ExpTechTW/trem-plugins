@@ -220,7 +220,7 @@ export default function Home() {
           md:flex-row
         `}
         >
-          <div>&copy; 2024 ExpTech Studio</div>
+          <div>&copy; 2024 ExpTech Ltd.</div>
           所有數據更新於
           {' '}
           {formatTimeString(updateTime)}
