@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { formatNumber, getRelativeTime, formatTimeString } from '@/lib/utils';
 
 import GithubPeople from './github_people';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -35,8 +36,26 @@ export default function PluginCard({ plugin }: Props) {
           <div className="flex flex-col gap-2">
             <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
             <CardDescription>
-              <div>
+              <div className="flex flex-col gap-2">
                 <GithubPeople people={plugin.author} />
+                <div>
+                  {plugin.repository.releases.releases[0]?.published_at
+                  && (
+                    <div className="flex items-center gap-2">
+                      <Clock size={18} className="shrink-0" />
+                      <Tooltip>
+                        <TooltipContent>
+                          {formatTimeString(plugin.repository.releases.releases[0].published_at)}
+                        </TooltipContent>
+                        <TooltipTrigger>
+                          最後更新
+                          {' '}
+                          {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
+                        </TooltipTrigger>
+                      </Tooltip>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardDescription>
           </div>
@@ -53,40 +72,6 @@ export default function PluginCard({ plugin }: Props) {
             >
               <SiGithub size={28} />
             </a>
-          </div>
-
-        </div>
-        <div className={`
-          flex items-center gap-2 pt-2 text-sm text-muted-foreground
-        `}
-        >
-          <Clock size={12} className="shrink-0" />
-          <div>
-            <span>最後更新 </span>
-            {plugin.repository.releases.releases[0]?.published_at
-              ? (
-                  <div className="group relative inline-block">
-                    <span className={`
-                      cursor-help transition-colors
-                      hover:text-foreground
-                    `}
-                    >
-                      {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
-                    </span>
-                    <span className={`
-                      invisible absolute -top-8 left-0 z-10 whitespace-nowrap
-                      rounded-md border bg-popover px-2.5 py-1.5 text-sm
-                      shadow-md
-                      group-hover:visible
-                    `}
-                    >
-                      {formatTimeString(plugin.repository.releases.releases[0].published_at)}
-                    </span>
-                  </div>
-                )
-              : (
-                  <span>尚未發布</span>
-                )}
           </div>
         </div>
       </CardHeader>
