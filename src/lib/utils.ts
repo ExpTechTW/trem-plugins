@@ -61,8 +61,8 @@ export const formatTimeString = (time: moment.MomentInput) => {
   return moment(time).format('YYYY/MM/DD HH:mm:ss');
 };
 
-export const getRelativeTime = (time: moment.MomentInput) => {
-  const baseTime = moment(time).utcOffset(8, true);
+export const getRelativeTime = (time: moment.MomentInput, utc: boolean = false) => {
+  const baseTime = utc ? moment(time).utcOffset(8, true) : moment(time);
   const currentTime = moment().utcOffset(8, true);
 
   const diffMs = currentTime.diff(baseTime);
