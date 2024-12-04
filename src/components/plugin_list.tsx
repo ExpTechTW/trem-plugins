@@ -1,14 +1,14 @@
 'use client';
 
-import { GlowCapture, Glow } from '@codaworks/react-glow';
-import { ArrowUp, ArrowDown, Search, Download, Clock, Text, ArrowDownNarrowWide, ArrowUpWideNarrow, ArrowUpNarrowWide, ArrowDownWideNarrow } from 'lucide-react';
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, Clock, Download, Search, Text } from 'lucide-react';
+import { Glow, GlowCapture } from '@codaworks/react-glow';
 import { useState } from 'react';
 
-import PluginCard from '@/components/plugin_card';
 import { Button } from '@/components/ui/button';
+import PluginCard from '@/components/plugin_card';
 
-import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Input } from './ui/input';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -16,8 +16,8 @@ type SortField = 'name' | 'updated' | 'downloads';
 type SortDirection = 'asc' | 'desc';
 
 export default function PluginList({ plugins: initialPlugins }: { plugins: Plugin[] }) {
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('downloads');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
 
   // 先過濾再排序

@@ -35,12 +35,15 @@ export default ts.config(
             'type',
           ],
           'newlines-between': 'always',
-          'alphabetize': {
-            order: 'asc',
-          },
         },
       ],
-    }
+      'sort-imports': [
+        'warn', 
+        {
+          allowSeparatedGroups: true,
+        },
+      ],
+    },
   },
   {
     languageOptions: {
