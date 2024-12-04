@@ -250,49 +250,19 @@ export default async function PluginPage({
         {/* 內容區 */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="readme" className="space-y-4">
-            <TabsList className="flex flex-wrap gap-2 rounded-lg bg-muted p-1" aria-label="選擇內容">
-              <TabsTrigger
-                value="readme"
-                className={`
-                  flex-1 rounded-md px-3 py-2 text-sm font-medium
-                  transition-colors
-                  data-[state=active]:bg-background
-                  data-[state=active]:text-foreground data-[state=active]:shadow
-                `}
-              >
-                說明文件
-              </TabsTrigger>
-              <TabsTrigger
-                value="versions"
-                className={`
-                  flex-1 rounded-md px-3 py-2 text-sm font-medium
-                  transition-colors
-                  data-[state=active]:bg-background
-                  data-[state=active]:text-foreground data-[state=active]:shadow
-                `}
-              >
-                版本列表
-              </TabsTrigger>
-              <TabsTrigger
-                value="dependencies"
-                className={`
-                  flex-1 rounded-md px-3 py-2 text-sm font-medium
-                  transition-colors
-                  data-[state=active]:bg-background
-                  data-[state=active]:text-foreground data-[state=active]:shadow
-                `}
-              >
-                相依性
-              </TabsTrigger>
+            <TabsList>
+              <TabsTrigger value="readme">說明文件</TabsTrigger>
+              <TabsTrigger value="versions">版本列表</TabsTrigger>
+              <TabsTrigger value="dependencies">相依性</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="readme" className="outline-none">
+            <TabsContent value="readme">
               <Card>
                 <ReadmeTab plugin={plugin} />
               </Card>
             </TabsContent>
 
-            <TabsContent value="versions" className="outline-none">
+            <TabsContent value="versions">
               <Card>
                 <CardContent className={`
                   p-4
@@ -346,7 +316,7 @@ export default async function PluginPage({
               </Card>
             </TabsContent>
 
-            <TabsContent value="dependencies" className="outline-none">
+            <TabsContent value="dependencies">
               <Card>
                 <CardContent className={`
                   p-4
