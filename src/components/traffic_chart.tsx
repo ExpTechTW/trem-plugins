@@ -1,6 +1,8 @@
+'use client';
+
 import { Loader2Icon } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatTimeString } from '@/lib/utils';
@@ -35,16 +37,47 @@ const TrafficChart: React.FC = () => {
   const [trafficData, setTrafficData] = useState<ProcessedTrafficData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const maxRetries = 3;
 
-  useEffect(() => {
-    const fetchTrafficData = async () => {
+  const fetchTrafficData = useCallback(
+    async (retry = 0) => {
       try {
+        setError(null);
+        const cachedTraffic = localStorage.getItem('tremTraffic');
+        const lastFetch = localStorage.getItem('lastTrafficFetch');
+        const now = Date.now();
+
+        if (cachedTraffic && lastFetch && now - parseInt(lastFetch) < 3600000) {
+          const parsedTraffic = JSON.parse(cachedTraffic) as TrafficData;
+          const chartData = parsedTraffic.views.map((item: TrafficView) => ({
+            date: new Date(item.timestamp).toLocaleDateString(),
+            visits: item.count,
+            unique: item.uniques,
+          }));
+
+          setTrafficData({
+            chartData,
+            total: parsedTraffic.count,
+            uniques: parsedTraffic.uniques,
+            lastUpdate: parsedTraffic.collected_at,
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const response = await fetch(
           'https://raw.githubusercontent.com/ExpTechTW/trem-plugins/main/data/traffic.json',
         );
+
         const data = (await response.json()) as TrafficData;
 
-        // Transform data for the chart
+        if (!data.views || !Array.isArray(data.views)) {
+          throw new Error('無法載入流量數據');
+        }
+
+        localStorage.setItem('tremTraffic', JSON.stringify(data));
+        localStorage.setItem('lastTrafficFetch', now.toString());
+
         const chartData = data.views.map((item: TrafficView) => ({
           date: new Date(item.timestamp).toLocaleDateString(),
           visits: item.count,
@@ -58,17 +91,48 @@ const TrafficChart: React.FC = () => {
           lastUpdate: data.collected_at,
         });
       }
-      catch (error) {
-        console.error('Error fetching traffic data:', error);
-        setError('無法載入流量數據');
+      catch (err) {
+        console.error('Error fetching traffic data:', err);
+
+        if (retry < maxRetries) {
+          setError(`載入失敗 (${retry + 1}/${maxRetries})，重試中...`);
+          setTimeout(() => {
+            void fetchTrafficData(retry + 1);
+          }, 1000 * (retry + 1));
+        }
+        else {
+          const cachedData = localStorage.getItem('tremTraffic');
+          if (cachedData) {
+            const parsedTraffic = JSON.parse(cachedData) as TrafficData;
+            const chartData = parsedTraffic.views.map((item: TrafficView) => ({
+              date: new Date(item.timestamp).toLocaleDateString(),
+              visits: item.count,
+              unique: item.uniques,
+            }));
+
+            setTrafficData({
+              chartData,
+              total: parsedTraffic.count,
+              uniques: parsedTraffic.uniques,
+              lastUpdate: parsedTraffic.collected_at,
+            });
+            setError('使用緩存資料（可能不是最新）');
+          }
+          else {
+            setError('無法載入流量數據，請重新整理頁面');
+          }
+        }
       }
       finally {
         setIsLoading(false);
       }
-    };
+    },
+    [maxRetries],
+  );
 
+  useEffect(() => {
     void fetchTrafficData();
-  }, []);
+  }, [fetchTrafficData]);
 
   if (isLoading) {
     return (

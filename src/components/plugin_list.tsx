@@ -20,7 +20,6 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // 先過濾再排序
   const filteredPlugins = initialPlugins.filter((plugin) => {
     if (!plugin) return false;
 
@@ -103,7 +102,7 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
                   <span>名稱</span>
                 </div>
               </SelectItem>
-              <SelectItem value="update">
+              <SelectItem value="updated">
                 <div className="flex items-center gap-2">
                   <Clock size={18} />
                   <span>最後更新</span>

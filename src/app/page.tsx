@@ -1,7 +1,7 @@
 'use client';
 
-import { Moon, Sun, AlertCircle, Loader2Icon } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { AlertCircle, Loader2Icon, Moon, Sun } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 import AppFooter from '@/components/footer';
 import PluginList from '@/components/plugin_list';
@@ -38,7 +38,7 @@ export default function Home() {
         const lastFetch = localStorage.getItem('lastPluginsFetch');
         const now = Date.now();
 
-        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 600000) {
+        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
           const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
           setPlugins(parsedPlugins);
           setUpdateTime(now);
