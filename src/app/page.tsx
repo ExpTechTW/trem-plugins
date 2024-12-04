@@ -22,7 +22,10 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const darkMode = localStorage.getItem('darkMode');
+    return darkMode === 'true' || false;
+  });
   const [showStable, setShowStable] = useState(true);
   const [showRc, setShowRc] = useState(false);
   const [showPre, setShowPre] = useState(false);
@@ -89,6 +92,14 @@ export default function Home() {
     },
     [maxRetries],
   );
+
+  const handleDarkModeToggle = () => {
+    setIsDarkMode((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('darkMode', String(newValue));
+      return newValue;
+    });
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
@@ -214,16 +225,10 @@ export default function Home() {
                 )}
           </button>
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={handleDarkModeToggle}
             className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            {isDarkMode
-              ? (
-                  <Sun className="h-5 w-5" />
-                )
-              : (
-                  <Moon className="h-5 w-5" />
-                )}
+            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
         </div>
       </div>
