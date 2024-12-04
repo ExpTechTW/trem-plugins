@@ -42,7 +42,7 @@ export function InstallButtons({ plugin }: InstallButtonsProps) {
   }
 
   const downloadUrl = `https://github.com/${plugin.repository.full_name}/releases/latest/download/${plugin.name}.trem`;
-  const tremUrl = `trem-lite://plugin/install/${plugin.name}`;
+  const tremUrl = `trem-lite://plugin/install:${plugin.name}@${downloadUrl}`;
 
   const handleTremOpen = () => {
     window.location.href = tremUrl;
