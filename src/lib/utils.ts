@@ -62,17 +62,8 @@ export const formatTimeString = (time: moment.MomentInput) => {
 };
 
 export const getRelativeTime = (time: moment.MomentInput, utc: boolean = false) => {
-  let baseTime;
-  let currentTime;
-
-  if (utc) {
-    baseTime = moment.utc(time).add(8, 'hours');
-    currentTime = moment.utc().add(8, 'hours');
-  }
-  else {
-    baseTime = moment(time);
-    currentTime = moment();
-  }
+  const baseTime = utc ? moment.utc(time).add(8, 'hours') : moment(time);
+  const currentTime = moment.utc().add(8, 'hours');
 
   const diffMs = currentTime.diff(baseTime);
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
