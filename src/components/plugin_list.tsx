@@ -1,18 +1,13 @@
 'use client';
 
-import {
-  ArrowUp,
-  ArrowDown,
-  Download,
-  Clock,
-  Text,
-  Search,
-} from 'lucide-react';
+import { GlowCapture, Glow } from '@codaworks/react-glow';
+import { ArrowUp, ArrowDown, Download, Clock, Text, Search } from 'lucide-react';
 import { useState } from 'react';
 
 import PluginCard from '@/components/plugin_card';
 import { Button } from '@/components/ui/button';
-import { type Plugin } from '@/modal/plugin';
+
+import type { Plugin } from '@/modal/plugin';
 
 type SortField = 'name' | 'updated' | 'downloads';
 type SortDirection = 'asc' | 'desc';
@@ -169,16 +164,20 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
       </div>
 
       {/* 插件列表 */}
-      <div className={`
-        grid grid-cols-1 gap-4
-        lg:grid-cols-3
-        sm:grid-cols-2
-      `}
-      >
-        {sortedPlugins.map((plugin) => (
-          <PluginCard key={plugin.name} plugin={plugin} />
-        ))}
-      </div>
+      <GlowCapture>
+        <div className={`
+          grid grid-cols-1 gap-4
+          lg:grid-cols-3
+          sm:grid-cols-2
+        `}
+        >
+          {sortedPlugins.map((plugin) => (
+            <Glow key={plugin.name}>
+              <PluginCard plugin={plugin} />
+            </Glow>
+          ))}
+        </div>
+      </GlowCapture>
 
       {sortedPlugins.length === 0 && (
         <div className="py-12 text-center">

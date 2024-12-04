@@ -21,6 +21,7 @@ export default function GithubPeople({ people }: Props) {
           <AvatarImage
             src={`https://github.com/${name}.png`}
             alt={`${name} avatar`}
+            draggable="false"
           />
         </Avatar>
       </Link>,

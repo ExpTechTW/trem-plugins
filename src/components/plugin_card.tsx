@@ -27,8 +27,10 @@ export default function PluginCard({ plugin }: Props) {
     <Card
       onClick={handleCardClick}
       className={`
-        cursor-pointer transition-colors
-        hover:bg-accent/50
+        flex h-full cursor-pointer flex-col
+        transition-[color_background-color_border-color]
+        glow:border-primary/40 glow:bg-primary/[.12]
+        hover:border-primary/20 hover:bg-primary/[.08]
       `}
     >
       <CardHeader>
@@ -75,7 +77,7 @@ export default function PluginCard({ plugin }: Props) {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="flex flex-col gap-4">
           <p>{plugin.description.zh_tw}</p>
         </div>

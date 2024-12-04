@@ -5,6 +5,7 @@
 body {
   font-family: Manrope, "Noto Sans TC", sans-serif;
   text-rendering: optimizeLegibility;
+  user-select: none;
 }
 
 @layer base {
