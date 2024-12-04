@@ -3,12 +3,12 @@
 import { AlertCircle, Loader2Icon, Moon, Sun } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import AppFooter from '@/components/footer';
 import PluginList from '@/components/plugin_list';
 import TrafficChart from '@/components/traffic_chart';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatNumber, formatTimeString } from '@/lib/utils';
+import { formatTimeString } from '@/lib/utils';
+import StatsSection from '@/components/status';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -178,36 +178,7 @@ export default function Home() {
 
         <PluginList plugins={plugins} />
 
-        <div className={`
-          grid grid-cols-1 gap-4 pt-8
-          md:grid-cols-3
-        `}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">擴充總數</CardTitle>
-              <CardContent className="p-0 pt-2">
-                <span className="text-3xl font-bold">{stats.totalPlugins}</span>
-              </CardContent>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">總下載量</CardTitle>
-              <CardContent className="p-0 pt-2">
-                <span className="text-3xl font-bold">{formatNumber(stats.totalDownloads)}</span>
-              </CardContent>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">開發人數</CardTitle>
-              <CardContent className="p-0 pt-2">
-                <span className="text-3xl font-bold">{stats.totalAuthors}</span>
-              </CardContent>
-            </CardHeader>
-          </Card>
-        </div>
+        <StatsSection stats={stats} />
 
         <div className="pt-8">
           <TrafficChart />
