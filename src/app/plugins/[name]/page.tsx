@@ -8,6 +8,7 @@ import { formatNumber, formatTimeString } from '@/lib/utils';
 import GithubPeople from '@/components/github_people';
 import { Button } from '@/components/ui/button';
 import ReadmeTab from '@/components/readme';
+import { InstallButtons } from '@/components/install';
 
 async function getPlugins(): Promise<Plugin[]> {
   try {
@@ -113,14 +114,9 @@ export default async function PluginPage({
               </div>
 
               {plugin.repository.releases.releases.length > 0 && (
-                <Button className="w-full" asChild>
-                  <a
-                    href={`https://github.com/${plugin.repository.full_name}/releases/latest/download/${plugin.name}.trem`}
-                    download
-                  >
-                    下載最新版本
-                  </a>
-                </Button>
+                <div className="space-y-2">
+                  <InstallButtons plugin={plugin} />
+                </div>
               )}
             </CardContent>
           </Card>
