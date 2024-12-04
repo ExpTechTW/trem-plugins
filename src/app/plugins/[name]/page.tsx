@@ -9,6 +9,7 @@ import ReadmeTab from '@/components/readme';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import type { Plugin } from '@/modal/plugin';
@@ -90,7 +91,6 @@ export default async function PluginPage({
   return (
     <div className="flex flex-col gap-4">
       <main className="container mx-auto min-h-svh flex-1 px-4 py-8">
-        {/* 返回按鈕 */}
         <div className="mb-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/" className="flex items-center gap-2">
@@ -106,7 +106,6 @@ export default async function PluginPage({
           sm:gap-6
         `}
         >
-          {/* 資訊區 - 在手機上顯示在上方 */}
           <div className={`
             space-y-4
             lg:col-span-1
@@ -122,13 +121,11 @@ export default async function PluginPage({
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {/* 資訊區塊 - 使用 Grid 分為左右兩欄 */}
                 <div className={`
                   grid grid-cols-1 gap-6 border-t pt-4
                   md:grid-cols-2
                 `}
                 >
-                  {/* 左欄 */}
                   <div className="space-y-4">
                     <div className="text-muted-foreground">
                       <div className={`
@@ -138,24 +135,10 @@ export default async function PluginPage({
                         <RefreshCw size={16} className="shrink-0" />
                         <span>資料同步</span>
                       </div>
-                      <div className="group relative ml-6">
-                        <span className={`
-                          cursor-help transition-colors
-                          hover:text-foreground
-                        `}
-                        >
-                          {getRelativeTime(plugin.updated_at)}
-                        </span>
-                        <span className={`
-                          invisible absolute -top-8 left-0 z-10
-                          whitespace-nowrap rounded-md border bg-popover px-2.5
-                          py-1.5 text-sm shadow-md
-                          group-hover:visible
-                        `}
-                        >
-                          {formatTimeString(plugin.updated_at)}
-                        </span>
-                      </div>
+                      <Tooltip>
+                        <TooltipContent>{formatTimeString(plugin.updated_at)}</TooltipContent>
+                        <TooltipTrigger>{getRelativeTime(plugin.updated_at)}</TooltipTrigger>
+                      </Tooltip>
                     </div>
 
                     <div className="text-muted-foreground">
@@ -166,17 +149,12 @@ export default async function PluginPage({
                         <Tag size={16} className="shrink-0" />
                         <span>最新版本</span>
                       </div>
-                      <div className={`
-                        ml-6 transition-colors
-                        hover:text-foreground
-                      `}
-                      >
-                        {plugin.repository.releases.releases[0]?.tag_name ?? '無版本'}
+                      <div>
+                        {plugin.repository.releases.releases[0]?.tag_name ?? '無'}
                       </div>
                     </div>
                   </div>
 
-                  {/* 右欄 */}
                   <div className="space-y-4">
                     <div className="text-muted-foreground">
                       <div className={`
@@ -188,24 +166,10 @@ export default async function PluginPage({
                       </div>
                       {plugin.repository.releases.releases[0]?.published_at
                         ? (
-                            <div className="group relative ml-6">
-                              <span className={`
-                                cursor-help transition-colors
-                                hover:text-foreground
-                              `}
-                              >
-                                {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
-                              </span>
-                              <span className={`
-                                invisible absolute -top-8 left-0 z-10
-                                whitespace-nowrap rounded-md border bg-popover
-                                px-2.5 py-1.5 text-sm shadow-md
-                                group-hover:visible
-                              `}
-                              >
-                                {formatTimeString(plugin.repository.releases.releases[0].published_at)}
-                              </span>
-                            </div>
+                            <Tooltip>
+                              <TooltipContent>{formatTimeString(plugin.repository.releases.releases[0].published_at)}</TooltipContent>
+                              <TooltipTrigger>{getRelativeTime(plugin.repository.releases.releases[0].published_at)}</TooltipTrigger>
+                            </Tooltip>
                           )
                         : (
                             <div className="ml-6">尚未發布</div>
@@ -220,20 +184,13 @@ export default async function PluginPage({
                         <Download size={16} className="shrink-0" />
                         <span>總下載量</span>
                       </div>
-                      <div className={`
-                        ml-6 transition-colors
-                        hover:text-foreground
-                      `}
-                      >
+                      <div>
                         {formatNumber(plugin.repository.releases.total_downloads)}
-                        {' '}
-                        次下載
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* GitHub 連結和安裝按鈕 */}
                 <div className="space-y-4 border-t pt-4">
                   <Link
                     href={plugin.link}
@@ -257,12 +214,11 @@ export default async function PluginPage({
             </Card>
           </div>
 
-          {/* 內容區 */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="readme" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="readme">說明文件</TabsTrigger>
-                <TabsTrigger value="versions">版本列表</TabsTrigger>
+                <TabsTrigger value="readme">說明</TabsTrigger>
+                <TabsTrigger value="versions">版本</TabsTrigger>
                 <TabsTrigger value="dependencies">相依性</TabsTrigger>
               </TabsList>
 
