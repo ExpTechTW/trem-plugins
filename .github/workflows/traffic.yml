@@ -40,35 +40,37 @@ jobs:
           
           response = requests.get(api_url, headers=headers)
           new_data = response.json()
-          
-          # 加入時間戳記
           new_data['collected_at'] = datetime.utcnow().isoformat()
           
+          # 確保 data 目錄存在
+          os.makedirs('data', exist_ok=True)
+          
           # 讀取現有數據或創建新的
-          if os.path.exists('traffic.json'):
-              with open('traffic.json', 'r') as f:
-                  data = json.load(f)
+          if os.path.exists('data/traffic.json'):
+              with open('data/traffic.json', 'r') as f:
+                  existing_data = json.load(f)
           else:
-              data = []
+              existing_data = new_data
           
-          # 添加新數據
-          data.append(new_data)
-          
-          # 只保留最近 30 天的數據
-          thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-          data = [d for d in data if datetime.fromisoformat(d['collected_at']) > thirty_days_ago]
+          # 判斷是否需要更新數據
+          if 'views' in existing_data and existing_data['views']:
+              last_date = datetime.fromisoformat(existing_data['collected_at'])
+              if datetime.utcnow() - last_date > timedelta(hours=12):
+                  existing_data = new_data
+          else:
+              existing_data = new_data
           
           # 保存數據
-          with open('traffic.json', 'w') as f:
-              json.dump(data, f, indent=2)
+          with open('data/traffic.json', 'w') as f:
+              json.dump(existing_data, f, indent=2)
           "
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push if changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add traffic.json
+          git add data/traffic.json
           git commit -m "Update traffic data" || exit 0
           git push
