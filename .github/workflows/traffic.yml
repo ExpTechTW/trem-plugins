@@ -2,8 +2,8 @@ name: Collect Traffic Data
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天 UTC 00:00 執行
-  workflow_dispatch:  
+    - cron: "0 0 * * *" # 每天 UTC 00:00 執行
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: pip install requests
@@ -37,21 +37,21 @@ jobs:
               'Authorization': f'Bearer {os.environ['GITHUB_TOKEN']}',
               'Accept': 'application/vnd.github.v3+json'
           }
-          
+
           response = requests.get(api_url, headers=headers)
           new_data = response.json()
           new_data['collected_at'] = datetime.utcnow().isoformat()
-          
+
           # 確保 data 目錄存在
           os.makedirs('data', exist_ok=True)
-          
+
           # 讀取現有數據或創建新的
           if os.path.exists('data/traffic.json'):
               with open('data/traffic.json', 'r') as f:
                   existing_data = json.load(f)
           else:
               existing_data = new_data
-          
+
           # 判斷是否需要更新數據
           if 'views' in existing_data and existing_data['views']:
               last_date = datetime.fromisoformat(existing_data['collected_at'])
@@ -59,10 +59,10 @@ jobs:
                   existing_data = new_data
           else:
               existing_data = new_data
-          
+
           # 保存數據
           with open('data/traffic.json', 'w') as f:
-              json.dump(existing_data, f, indent=2)
+              json.dump(existing_data, f, separators=(',', ':'))
           "
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
