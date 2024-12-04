@@ -26,7 +26,7 @@ export default function RootLayout({
 
   return (
     <html lang="zh-Hant">
-      <body>
+      <body className="flex flex-col">
         <TooltipProvider>
           {children}
         </TooltipProvider>

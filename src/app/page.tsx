@@ -3,10 +3,11 @@
 import { Moon, Sun, AlertCircle, Loader2Icon } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
+import AppFooter from '@/components/footer';
 import PluginList from '@/components/plugin_list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, formatTimeString } from '@/lib/utils';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -18,6 +19,12 @@ export default function Home() {
       return localStorage.getItem('darkMode') === 'true';
     }
     return false;
+  });
+  const [updateTime, setUpdateTime] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return Number(localStorage.getItem('lastPluginsFetch') ?? 0);
+    }
+    return Date.now();
   });
   const [error, setError] = useState<string | null>(null);
   const maxRetries = 3;
@@ -33,6 +40,7 @@ export default function Home() {
         if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 600000) {
           const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
           setPlugins(parsedPlugins);
+          setUpdateTime(now);
           setIsLoading(false);
           return;
         }
@@ -51,6 +59,7 @@ export default function Home() {
         localStorage.setItem('lastPluginsFetch', now.toString());
 
         setPlugins(pluginsData);
+        setUpdateTime(now);
         setIsLoading(false);
       }
       catch (error) {
@@ -128,82 +137,90 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      {error && (
-        <div className={`
-          mb-4 border-l-4 border-yellow-500 bg-yellow-100 p-4
-          dark:bg-yellow-900
-        `}
-        >
-          <div className="flex items-center">
-            <AlertCircle className="mr-2 h-5 w-5 text-yellow-500" />
-            <p className={`
-              text-yellow-700
-              dark:text-yellow-200
-            `}
+    <div className="flex flex-col gap-4">
+      <main className="container mx-auto min-h-svh flex-1 px-4 py-8">
+        {error && (
+          <div className={`
+            mb-4 border-l-4 border-yellow-500 bg-yellow-100 p-4
+            dark:bg-yellow-900
+          `}
+          >
+            <div className="flex items-center">
+              <AlertCircle className="mr-2 h-5 w-5 text-yellow-500" />
+              <p className={`
+                text-yellow-700
+                dark:text-yellow-200
+              `}
+              >
+                {error}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleDarkModeToggle}
             >
-              {error}
-            </p>
+              {isDarkMode
+                ? <Sun className="h-5 w-5" />
+                : (
+                    <Moon className="h-5 w-5" />
+                  )}
+            </Button>
           </div>
         </div>
-      )}
 
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
-        <div className="flex gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleDarkModeToggle}
-          >
-            {isDarkMode
-              ? <Sun className="h-5 w-5" />
-              : (
-                  <Moon className="h-5 w-5" />
-                )}
-          </Button>
+        <div className={`
+          mb-8 grid grid-cols-1 gap-4
+          md:grid-cols-3
+        `}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">擴充總數</CardTitle>
+              <CardContent className="p-0 pt-2">
+                <span className="text-3xl font-bold">{stats.totalPlugins}</span>
+              </CardContent>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">總下載量</CardTitle>
+              <CardContent className="p-0 pt-2">
+                <span className="text-3xl font-bold">{formatNumber(stats.totalDownloads)}</span>
+              </CardContent>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">開發者數量</CardTitle>
+              <CardContent className="p-0 pt-2">
+                <span className="text-3xl font-bold">{stats.totalAuthors}</span>
+              </CardContent>
+            </CardHeader>
+          </Card>
         </div>
-      </div>
+        <PluginList plugins={plugins} />
 
-      <div className={`
-        mb-8 grid grid-cols-1 gap-4
-        md:grid-cols-3
-      `}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">擴充總數</CardTitle>
-            <CardContent className="p-0 pt-2">
-              <span className="text-3xl font-bold">{stats.totalPlugins}</span>
-            </CardContent>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">總下載量</CardTitle>
-            <CardContent className="p-0 pt-2">
-              <span className="text-3xl font-bold">{formatNumber(stats.totalDownloads)}</span>
-            </CardContent>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">開發者數量</CardTitle>
-            <CardContent className="p-0 pt-2">
-              <span className="text-3xl font-bold">{stats.totalAuthors}</span>
-            </CardContent>
-          </CardHeader>
-        </Card>
-      </div>
-      <PluginList plugins={plugins} />
+      </main>
 
-      <footer className="mt-12 text-center text-sm text-muted-foreground">
-        <p>
-          © 2024 TREM Plugins. 所有數據更新於
+      <AppFooter>
+        <div className={`
+          flex flex-col justify-between gap-2
+          md:flex-row
+        `}
+        >
+          <div>&copy; 2024 ExpTech Studio</div>
+          所有數據更新於
           {' '}
-          {new Date().toLocaleDateString()}
-        </p>
-      </footer>
-    </main>
+          {formatTimeString(updateTime)}
+        </div>
+      </AppFooter>
+    </div>
   );
 }

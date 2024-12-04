@@ -22,6 +22,7 @@ export default ts.config(
   importX.flatConfigs.typescript,
   {
     rules: {
+      'import-x/no-named-as-default-member': ['off'],
       'import-x/order': [
         'warn',
         {

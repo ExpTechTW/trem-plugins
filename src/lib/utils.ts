@@ -1,7 +1,10 @@
 import { clsx } from 'clsx';
+import moment from 'moment';
 import { twMerge } from 'tailwind-merge';
 
 import type { ClassValue } from 'clsx';
+
+import 'moment/locale/zh-tw';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -41,11 +44,10 @@ export const formatNumber = (n: number) => {
     f = (n / 1_000);
     u = 'K';
   }
-  if (n >= 1_000_000) {
+  else if (n >= 1_000_000) {
     f = (n / 1_000_000);
     u = 'M';
   }
-
   else {
     f = n;
   }
@@ -53,31 +55,12 @@ export const formatNumber = (n: number) => {
   return ((f * 100) / 100).toString() + u;
 };
 
-export const formatTimeString = (time: string) => {
-  const date = new Date(time);
-  return date.toLocaleString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
+moment.locale('zh-tw');
+
+export const formatTimeString = (time: moment.MomentInput) => {
+  return moment(time).format('YYYY/MM/DD HH:mm:ss');
 };
 
-export const getRelativeTime = (time: string) => {
-  const now = new Date();
-  const past = new Date(time);
-  const diffTime = Math.abs(now.getTime() - past.getTime());
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) {
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    if (diffHours === 0) {
-      const diffMinutes = Math.floor(diffTime / (1000 * 60));
-      return `${diffMinutes} 分鐘前`;
-    }
-    return `${diffHours} 小時前`;
-  }
-  return `${diffDays} 天前`;
+export const getRelativeTime = (time: moment.MomentInput) => {
+  return moment(time).fromNow();
 };
