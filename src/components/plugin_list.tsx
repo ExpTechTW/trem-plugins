@@ -1,58 +1,24 @@
 'use client';
 
 import { GlowCapture, Glow } from '@codaworks/react-glow';
-import { ArrowUp, ArrowDown, Download, Clock, Text, Search } from 'lucide-react';
+import { ArrowUp, ArrowDown, Search, Download, Clock, Text, ArrowDownNarrowWide, ArrowUpWideNarrow, ArrowUpNarrowWide, ArrowDownWideNarrow } from 'lucide-react';
 import { useState } from 'react';
 
 import PluginCard from '@/components/plugin_card';
 import { Button } from '@/components/ui/button';
 
 import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
 import type { Plugin } from '@/modal/plugin';
 
 type SortField = 'name' | 'updated' | 'downloads';
 type SortDirection = 'asc' | 'desc';
 
-interface SortButtonProps {
-  field: SortField;
-  currentField: SortField;
-  direction: SortDirection;
-  label: string;
-  icon: React.ReactNode;
-  onClick: (field: SortField) => void;
-}
-
-const SortButton = ({ field, currentField, direction, label, icon, onClick }: SortButtonProps) => {
-  const isActive = field === currentField;
-
-  return (
-    <Button
-      variant={isActive ? 'default' : 'ghost'}
-      size="sm"
-      className="flex items-center gap-2"
-      onClick={() => onClick(field)}
-    >
-      {icon}
-      <span>{label}</span>
-      {isActive && (direction === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />)}
-    </Button>
-  );
-};
-
 export default function PluginList({ plugins: initialPlugins }: { plugins: Plugin[] }) {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState('');
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    }
-    else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
 
   // 先過濾再排序
   const filteredPlugins = initialPlugins.filter((plugin) => {
@@ -101,7 +67,7 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
 
       case 'downloads':
         return direction * (
-          b.repository.releases.total_downloads - a.repository.releases.total_downloads
+          a.repository.releases.total_downloads - b.repository.releases.total_downloads
         );
 
       default:
