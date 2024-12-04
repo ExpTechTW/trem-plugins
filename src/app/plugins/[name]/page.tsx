@@ -1,14 +1,16 @@
-import { type Plugin } from '@/modal/plugin';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import * as Tabs from '@radix-ui/react-tabs';
 import { SiGithub } from '@icons-pack/react-simple-icons';
+import * as Tabs from '@radix-ui/react-tabs';
 import { Download, Tag, ArrowLeft, RefreshCw, Clock } from 'lucide-react';
-import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
+import Link from 'next/link';
+
 import GithubPeople from '@/components/github_people';
-import { Button } from '@/components/ui/button';
-import ReadmeTab from '@/components/readme';
 import { InstallButtons } from '@/components/install';
+import ReadmeTab from '@/components/readme';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
+
+import type { Plugin } from '@/modal/plugin';
 
 async function fetchPlugins(): Promise<Plugin[]> {
   try {
@@ -73,7 +75,7 @@ export default async function PluginPage({
   if (!plugin) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4">找不到擴充</h1>
+        <h1 className="mb-4 text-2xl font-bold">找不到擴充</h1>
         <p>
           找不到名為
           {name}
@@ -85,7 +87,11 @@ export default async function PluginPage({
   }
 
   return (
-    <main className="container mx-auto px-4 py-4 sm:py-8">
+    <main className={`
+      container mx-auto px-4 py-4
+      sm:py-8
+    `}
+    >
       {/* 返回按鈕 */}
       <div className="mb-4">
         <Button variant="ghost" size="sm" asChild>
@@ -96,9 +102,18 @@ export default async function PluginPage({
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className={`
+        grid grid-cols-1 gap-4
+        lg:grid-cols-4
+        sm:gap-6
+      `}
+      >
         {/* 資訊區 - 在手機上顯示在上方 */}
-        <div className="lg:col-span-1 space-y-4">
+        <div className={`
+          space-y-4
+          lg:col-span-1
+        `}
+        >
           <Card>
             <CardHeader className="space-y-3">
               <CardTitle className="break-words">{plugin.name}</CardTitle>
@@ -110,21 +125,32 @@ export default async function PluginPage({
 
             <CardContent className="space-y-6">
               {/* 資訊區塊 - 使用 Grid 分為左右兩欄 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
+              <div className={`
+                grid grid-cols-1 gap-6 border-t pt-4
+                md:grid-cols-2
+              `}
+              >
                 {/* 左欄 */}
                 <div className="space-y-4">
                   <div className="text-muted-foreground">
-                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                    <div className="mb-1.5 flex items-center gap-2 font-medium">
                       <RefreshCw size={16} className="shrink-0" />
                       <span>資料同步</span>
                     </div>
                     <div className="group relative ml-6">
-                      <span className="cursor-help hover:text-foreground transition-colors">
+                      <span className={`
+                        cursor-help transition-colors
+                        hover:text-foreground
+                      `}
+                      >
                         {getRelativeTime(plugin.updated_at)}
                       </span>
-                      <span className="invisible group-hover:visible absolute left-0 -top-8
-                bg-popover px-2.5 py-1.5 rounded-md text-sm shadow-md whitespace-nowrap
-                border z-10"
+                      <span className={`
+                        invisible absolute -top-8 left-0 z-10 whitespace-nowrap
+                        rounded-md border bg-popover px-2.5 py-1.5 text-sm
+                        shadow-md
+                        group-hover:visible
+                      `}
                       >
                         {formatTimeString(plugin.updated_at)}
                       </span>
@@ -132,11 +158,15 @@ export default async function PluginPage({
                   </div>
 
                   <div className="text-muted-foreground">
-                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                    <div className="mb-1.5 flex items-center gap-2 font-medium">
                       <Tag size={16} className="shrink-0" />
                       <span>最新版本</span>
                     </div>
-                    <div className="ml-6 hover:text-foreground transition-colors">
+                    <div className={`
+                      ml-6 transition-colors
+                      hover:text-foreground
+                    `}
+                    >
                       {plugin.repository.releases.releases[0]?.tag_name ?? '無版本'}
                     </div>
                   </div>
@@ -145,19 +175,26 @@ export default async function PluginPage({
                 {/* 右欄 */}
                 <div className="space-y-4">
                   <div className="text-muted-foreground">
-                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                    <div className="mb-1.5 flex items-center gap-2 font-medium">
                       <Clock size={16} className="shrink-0" />
                       <span>最後更新</span>
                     </div>
                     {plugin.repository.releases.releases[0]?.published_at
                       ? (
                           <div className="group relative ml-6">
-                            <span className="cursor-help hover:text-foreground transition-colors">
+                            <span className={`
+                              cursor-help transition-colors
+                              hover:text-foreground
+                            `}
+                            >
                               {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
                             </span>
-                            <span className="invisible group-hover:visible absolute left-0 -top-8
-                  bg-popover px-2.5 py-1.5 rounded-md text-sm shadow-md whitespace-nowrap
-                  border z-10"
+                            <span className={`
+                              invisible absolute -top-8 left-0 z-10
+                              whitespace-nowrap rounded-md border bg-popover
+                              px-2.5 py-1.5 text-sm shadow-md
+                              group-hover:visible
+                            `}
                             >
                               {formatTimeString(plugin.repository.releases.releases[0].published_at)}
                             </span>
@@ -169,11 +206,15 @@ export default async function PluginPage({
                   </div>
 
                   <div className="text-muted-foreground">
-                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                    <div className="mb-1.5 flex items-center gap-2 font-medium">
                       <Download size={16} className="shrink-0" />
                       <span>總下載量</span>
                     </div>
-                    <div className="ml-6 hover:text-foreground transition-colors">
+                    <div className={`
+                      ml-6 transition-colors
+                      hover:text-foreground
+                    `}
+                    >
                       {formatNumber(plugin.repository.releases.total_downloads)}
                       {' '}
                       次下載
@@ -188,7 +229,11 @@ export default async function PluginPage({
                   href={plugin.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className={`
+                    flex items-center gap-2 text-sm text-muted-foreground
+                    transition-colors
+                    hover:text-foreground
+                  `}
                 >
                   <SiGithub size={16} className="shrink-0" />
                   <span>GitHub</span>
@@ -205,22 +250,37 @@ export default async function PluginPage({
         {/* 內容區 */}
         <div className="lg:col-span-3">
           <Tabs.Root defaultValue="readme" className="space-y-4">
-            <Tabs.List className="flex flex-wrap p-1 gap-2 bg-muted rounded-lg" aria-label="選擇內容">
+            <Tabs.List className="flex flex-wrap gap-2 rounded-lg bg-muted p-1" aria-label="選擇內容">
               <Tabs.Trigger
                 value="readme"
-                className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
+                className={`
+                  flex-1 rounded-md px-3 py-2 text-sm font-medium
+                  transition-colors
+                  data-[state=active]:bg-background
+                  data-[state=active]:text-foreground data-[state=active]:shadow
+                `}
               >
                 說明文件
               </Tabs.Trigger>
               <Tabs.Trigger
                 value="versions"
-                className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
+                className={`
+                  flex-1 rounded-md px-3 py-2 text-sm font-medium
+                  transition-colors
+                  data-[state=active]:bg-background
+                  data-[state=active]:text-foreground data-[state=active]:shadow
+                `}
               >
                 版本列表
               </Tabs.Trigger>
               <Tabs.Trigger
                 value="dependencies"
-                className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
+                className={`
+                  flex-1 rounded-md px-3 py-2 text-sm font-medium
+                  transition-colors
+                  data-[state=active]:bg-background
+                  data-[state=active]:text-foreground data-[state=active]:shadow
+                `}
               >
                 相依性
               </Tabs.Trigger>
@@ -234,14 +294,32 @@ export default async function PluginPage({
 
             <Tabs.Content value="versions" className="outline-none">
               <Card>
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className={`
+                  p-4
+                  sm:p-6
+                `}
+                >
                   <div className="space-y-6">
                     {plugin.repository.releases.releases.map((release) => (
-                      <div key={release.tag_name} className="border-b pb-4 last:border-0">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                      <div
+                        key={release.tag_name}
+                        className={`
+                          border-b pb-4
+                          last:border-0
+                        `}
+                      >
+                        <div className={`
+                          mb-2 flex flex-col gap-2
+                          sm:flex-row sm:items-start sm:justify-between
+                        `}
+                        >
                           <h3 className="font-medium">
                             {release.tag_name}
-                            <span className="block sm:inline text-sm text-muted-foreground sm:ml-2">
+                            <span className={`
+                              block text-sm text-muted-foreground
+                              sm:ml-2 sm:inline
+                            `}
+                            >
                               (
                               {new Date(release.published_at).toLocaleDateString('zh-TW')}
                               )
@@ -270,12 +348,25 @@ export default async function PluginPage({
 
             <Tabs.Content value="dependencies" className="outline-none">
               <Card>
-                <CardContent className="p-4 sm:p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <CardContent className={`
+                  p-4
+                  sm:p-6
+                `}
+                >
+                  <div className={`
+                    grid grid-cols-1 gap-4
+                    sm:grid-cols-2
+                  `}
+                  >
                     {Object.entries(plugin.dependencies).map(([key, value]) => (
-                      <div key={key} className="p-4 border rounded-lg">
-                        <div className="font-medium break-words">{key}</div>
-                        <div className="text-sm text-muted-foreground break-words">{value}</div>
+                      <div key={key} className="rounded-lg border p-4">
+                        <div className="break-words font-medium">{key}</div>
+                        <div className={`
+                          break-words text-sm text-muted-foreground
+                        `}
+                        >
+                          {value}
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import {
   Moon,
   Sun,
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
-import type { Plugin } from '@/modal/plugin';
+import { useState, useEffect, useCallback } from 'react';
+
+import PluginList from '@/components/plugin_list';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import PluginList from '@/components/plugin_list';
+
+import type { Plugin } from '@/modal/plugin';
 
 export default function Home() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
@@ -105,9 +107,13 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="text-center space-y-4">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500" />
+      <div className={`
+        flex min-h-screen items-center justify-center bg-gray-100
+        dark:bg-gray-900
+      `}
+      >
+        <div className="space-y-4 text-center">
+          <RefreshCw className="mx-auto h-8 w-8 animate-spin text-blue-500" />
           <div className="text-lg">載入中...</div>
         </div>
       </div>
@@ -116,10 +122,18 @@ export default function Home() {
 
   if (error && !plugins.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="max-w-md w-full mx-4 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <div className="text-center space-y-4">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+      <div className={`
+        flex min-h-screen items-center justify-center bg-gray-100
+        dark:bg-gray-900
+      `}
+      >
+        <div className={`
+          mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-lg
+          dark:bg-gray-800
+        `}
+        >
+          <div className="space-y-4 text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
             <h2 className="text-xl font-semibold">{error}</h2>
             <Button
               onClick={() => void fetchPlugins()}
@@ -136,15 +150,25 @@ export default function Home() {
   return (
     <main className="container mx-auto px-4 py-8">
       {error && (
-        <div className="bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 p-4 mb-4">
+        <div className={`
+          mb-4 border-l-4 border-yellow-500 bg-yellow-100 p-4
+          dark:bg-yellow-900
+        `}
+        >
           <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-yellow-500 mr-2" />
-            <p className="text-yellow-700 dark:text-yellow-200">{error}</p>
+            <AlertCircle className="mr-2 h-5 w-5 text-yellow-500" />
+            <p className={`
+              text-yellow-700
+              dark:text-yellow-200
+            `}
+            >
+              {error}
+            </p>
           </div>
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
         <div className="flex gap-4">
           <Button
@@ -152,12 +176,20 @@ export default function Home() {
             size="icon"
             onClick={handleDarkModeToggle}
           >
-            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {isDarkMode
+              ? <Sun className="h-5 w-5" />
+              : (
+                  <Moon className="h-5 w-5" />
+                )}
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className={`
+        mb-8 grid grid-cols-1 gap-4
+        md:grid-cols-3
+      `}
+      >
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">擴充總數</CardTitle>

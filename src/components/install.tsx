@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
+
 import type { Plugin } from '@/modal/plugin';
 
 interface InstallButtonsProps {

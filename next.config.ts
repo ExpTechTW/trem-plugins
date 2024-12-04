@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const basePath = isProduction ? '/trem-plugins' : '';
@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
       config.output.publicPath = `${basePath}/_next/`;
     }
     return config;
-  }
+  },
 };
 
 export default nextConfig;

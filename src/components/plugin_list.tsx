@@ -1,8 +1,5 @@
 'use client';
 
-import { type Plugin } from '@/modal/plugin';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   ArrowUp,
   ArrowDown,
@@ -11,7 +8,11 @@ import {
   Text,
   Search,
 } from 'lucide-react';
+import { useState } from 'react';
+
 import PluginCard from '@/components/plugin_card';
+import { Button } from '@/components/ui/button';
+import { type Plugin } from '@/modal/plugin';
 
 type SortField = 'name' | 'updated' | 'downloads';
 type SortDirection = 'asc' | 'desc';
@@ -114,21 +115,32 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 items-center">
+      <div className={`
+        flex flex-col items-center gap-4
+        md:flex-row
+      `}
+      >
         {/* 搜尋框 */}
-        <div className="flex-1 relative w-full">
-          <Search className="absolute left-3 top-1/2 h-5 w-5 text-muted-foreground -translate-y-1/2" />
+        <div className="relative w-full flex-1">
+          <Search className={`
+            absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2
+            text-muted-foreground
+          `}
+          />
           <input
             type="text"
             placeholder="搜尋擴充... (支援多關鍵字搜尋，用空格分隔)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-9 pl-10 pr-4 rounded-lg border bg-background focus:ring-2 focus:ring-ring focus:border-ring"
+            className={`
+              h-9 w-full rounded-lg border bg-background pl-10 pr-4
+              focus:border-ring focus:ring-2 focus:ring-ring
+            `}
           />
         </div>
 
         {/* 排序按鈕組 */}
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <SortButton
             field="name"
             currentField={sortField}
@@ -157,14 +169,19 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
       </div>
 
       {/* 插件列表 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`
+        grid grid-cols-1 gap-4
+        lg:grid-cols-3
+        sm:grid-cols-2
+      `}
+      >
         {sortedPlugins.map((plugin) => (
           <PluginCard key={plugin.name} plugin={plugin} />
         ))}
       </div>
 
       {sortedPlugins.length === 0 && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <p className="text-xl text-muted-foreground">
             沒有找到符合條件的擴充
           </p>

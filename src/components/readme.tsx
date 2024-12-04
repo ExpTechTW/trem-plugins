@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+
 import { Card, CardContent } from '@/components/ui/card';
+
 import type { Plugin } from '@/modal/plugin';
 
 interface ReadmeProps {
@@ -49,9 +51,9 @@ export default function ReadmeTab({ plugin }: ReadmeProps) {
       <Card>
         <CardContent className="p-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-muted rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
+            <div className="mb-4 h-4 w-3/4 rounded bg-muted"></div>
+            <div className="mb-4 h-4 w-1/2 rounded bg-muted"></div>
+            <div className="h-4 w-2/3 rounded bg-muted"></div>
           </div>
         </CardContent>
       </Card>
@@ -70,7 +72,11 @@ export default function ReadmeTab({ plugin }: ReadmeProps) {
 
   return (
     <Card>
-      <CardContent className="p-6 prose dark:prose-invert max-w-none">
+      <CardContent className={`
+        prose max-w-none p-6
+        dark:prose-invert
+      `}
+      >
         <ReactMarkdown
           rehypePlugins={[rehypeRaw]}
           remarkPlugins={[remarkGfm]}

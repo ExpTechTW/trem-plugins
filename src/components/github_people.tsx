@@ -1,5 +1,6 @@
-import { Avatar, AvatarImage } from './ui/avatar';
 import Link from 'next/link';
+
+import { Avatar, AvatarImage } from './ui/avatar';
 
 interface Props {
   people: string[];
@@ -58,7 +59,7 @@ export default function GithubPeople({ people }: Props) {
 
   return (
 
-    <div className="flex gap-2 items-center">
+    <div className="flex items-center gap-2">
       <span className="flex pl-4">{...images}</span>
       <span>{...names}</span>
     </div>
