@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber } from '@/lib/utils';
@@ -14,13 +14,40 @@ interface AnimatedCounterProps {
 
 const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   end,
-  duration = 1000,
+  duration = 2000,
   title,
   formatter = String,
 }) => {
   const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationStarted = useRef(false);
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !animationStarted.current) {
+          setIsVisible(true);
+        }
+      },
+      {
+        threshold: 0.1, // 當 10% 的元素可見時觸發
+      },
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    animationStarted.current = true;
     let startTimestamp: number | null = null;
     const step = (timestamp: number): void => {
       if (!startTimestamp) startTimestamp = timestamp;
@@ -34,10 +61,10 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
     };
 
     window.requestAnimationFrame(step);
-  }, [end, duration]);
+  }, [isVisible, end, duration]);
 
   return (
-    <Card>
+    <Card ref={containerRef}>
       <CardHeader>
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <CardContent className="p-0 pt-2">
