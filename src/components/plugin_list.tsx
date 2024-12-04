@@ -127,7 +127,7 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
         </div>
       </div>
 
-      {/* 插件列表 */}
+      {/* 擴充列表 */}
       <GlowCapture>
         <div className={`
           grid grid-cols-1 gap-4
