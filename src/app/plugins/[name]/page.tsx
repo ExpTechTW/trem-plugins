@@ -1,4 +1,13 @@
 import { type Plugin } from '@/modal/plugin';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import * as Tabs from '@radix-ui/react-tabs';
+import { SiGithub } from '@icons-pack/react-simple-icons';
+import { Download, Tag } from 'lucide-react';
+import { formatNumber, formatTimeString } from '@/lib/utils';
+import GithubPeople from '@/components/github_people';
+import { Button } from '@/components/ui/button';
+import ReadmeTab from '@/components/readme';
 
 async function getPlugins(): Promise<Plugin[]> {
   try {
@@ -27,11 +36,11 @@ async function getPluginData(name: string): Promise<Plugin | null> {
   return plugins.find((plugin) => plugin.name === name) || null;
 }
 
-interface PageProps {
+export default async function PluginPage({
+  params,
+}: {
   params: Promise<{ name: string }>;
-}
-
-export default async function PluginPage({ params }: PageProps) {
+}) {
   const { name } = await params;
   const plugin = await getPluginData(name);
 
@@ -51,105 +60,155 @@ export default async function PluginPage({ params }: PageProps) {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">{plugin.name}</h1>
-
-        <div className="bg-card rounded-lg p-6 shadow-sm">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">描述</h2>
-              <p>{plugin.description.zh_tw}</p>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold mb-2">作者</h2>
-              <div className="flex gap-2 flex-wrap">
-                {plugin.author.map((author) => (
-                  <span key={author} className="bg-secondary px-2 py-1 rounded">
-                    {author}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold mb-2">版本資訊</h2>
+      <div className="grid grid-cols-4 gap-6">
+        {/* 左側資訊區 */}
+        <div className="col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{plugin.name}</CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                {plugin.description.zh_tw}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <p>
-                  目前版本：
-                  {plugin.version}
-                </p>
-                <p>
-                  最後更新：
-                  {new Date(plugin.updated_at).toLocaleDateString('zh-TW')}
-                </p>
-                {plugin.repository.releases.releases[0]?.published_at && (
-                  <p>
-                    最後發布：
-                    {new Date(plugin.repository.releases.releases[0].published_at).toLocaleDateString('zh-TW')}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold mb-2">相依性</h2>
-              <div className="flex gap-2 flex-wrap">
-                {Object.entries(plugin.dependencies).map(([key, value]) => (
-                  <span key={key} className="bg-secondary px-2 py-1 rounded">
-                    {key}
-                    {' '}
-                    {value}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {plugin.repository.releases.releases.length > 0 && (
-              <div>
-                <h2 className="text-xl font-semibold mb-2">版本紀錄</h2>
-                <div className="space-y-4">
-                  {plugin.repository.releases.releases.map((release) => (
-                    <div key={release.tag_name} className="border-b pb-4">
-                      <h3 className="font-medium mb-1">
-                        {release.tag_name}
-                        <span className="text-sm text-muted-foreground ml-2">
-                          (
-                          {new Date(release.published_at).toLocaleDateString('zh-TW')}
-                          )
-                        </span>
-                      </h3>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          下載次數:
-                          {' '}
-                          {release.downloads}
-                        </span>
-                        <a
-                          href={`https://github.com/${plugin.repository.full_name}/releases/download/${release.tag_name}/${plugin.name}.trem`}
-                          className="text-primary hover:underline"
-                          download
-                        >
-                          下載此版本
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-sm">
+                  資料更新於
+                  {' '}
+                  {formatTimeString(plugin.updated_at)}
+                </div>
+                <div className="text-sm">
+                  {plugin.repository.releases.releases[0]?.published_at
+                    ? `最後發布於 ${formatTimeString(plugin.repository.releases.releases[0].published_at)}`
+                    : '尚未發布'}
                 </div>
               </div>
-            )}
 
-            <div className="flex justify-end">
-              <a
-                href={plugin.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
+              <div className="space-y-2">
+                <GithubPeople people={plugin.author} />
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Download size={16} />
+                  <span>
+                    {formatNumber(plugin.repository.releases.total_downloads)}
+                    {' '}
+                    次下載
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Tag size={16} />
+                  <span>{plugin.repository.releases.releases[0]?.tag_name ?? '無版本'}</span>
+                </div>
+
+                <Link
+                  href={plugin.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <SiGithub size={16} />
+                  <span>GitHub</span>
+                </Link>
+              </div>
+
+              {plugin.repository.releases.releases.length > 0 && (
+                <Button className="w-full" asChild>
+                  <a
+                    href={`https://github.com/${plugin.repository.full_name}/releases/latest/download/${plugin.name}.trem`}
+                    download
+                  >
+                    下載最新版本
+                  </a>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 右側內容區 */}
+        <div className="col-span-3">
+          <Tabs.Root defaultValue="readme" className="space-y-4">
+            <Tabs.List className="flex p-1 gap-2 bg-muted rounded-lg" aria-label="選擇內容">
+              <Tabs.Trigger
+                value="readme"
+                className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
               >
-                在 GitHub 上查看 →
-              </a>
-            </div>
-          </div>
+                說明文件
+              </Tabs.Trigger>
+              <Tabs.Trigger
+                value="versions"
+                className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
+              >
+                版本列表
+              </Tabs.Trigger>
+              <Tabs.Trigger
+                value="dependencies"
+                className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
+              >
+                相依性
+              </Tabs.Trigger>
+            </Tabs.List>
+
+            <Tabs.Content value="readme" className="outline-none">
+              <Card>
+                <Tabs.Content value="readme" className="outline-none">
+                  <ReadmeTab plugin={plugin} />
+                </Tabs.Content>
+              </Card>
+            </Tabs.Content>
+
+            <Tabs.Content value="versions" className="outline-none">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    {plugin.repository.releases.releases.map((release) => (
+                      <div key={release.tag_name} className="border-b pb-4 last:border-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-medium">
+                            {release.tag_name}
+                            <span className="text-sm text-muted-foreground ml-2">
+                              (
+                              {new Date(release.published_at).toLocaleDateString('zh-TW')}
+                              )
+                            </span>
+                          </h3>
+                          <Button variant="outline" size="sm" asChild>
+                            <a
+                              href={`https://github.com/${plugin.repository.full_name}/releases/download/${release.tag_name}/${plugin.name}.trem`}
+                              download
+                            >
+                              下載
+                            </a>
+                          </Button>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          下載次數:
+                          {' '}
+                          {formatNumber(release.downloads)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </Tabs.Content>
+
+            <Tabs.Content value="dependencies" className="outline-none">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(plugin.dependencies).map(([key, value]) => (
+                      <div key={key} className="p-4 border rounded-lg">
+                        <div className="font-medium">{key}</div>
+                        <div className="text-sm text-muted-foreground">{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </Tabs.Content>
+          </Tabs.Root>
         </div>
       </div>
     </main>
