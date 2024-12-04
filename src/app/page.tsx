@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import AppFooter from '@/components/footer';
 import PluginList from '@/components/plugin_list';
+import TrafficChart from '@/components/traffic_chart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber, formatTimeString } from '@/lib/utils';
@@ -175,8 +176,10 @@ export default function Home() {
           </div>
         </div>
 
+        <PluginList plugins={plugins} />
+
         <div className={`
-          mb-8 grid grid-cols-1 gap-4
+          grid grid-cols-1 gap-4 pt-8
           md:grid-cols-3
         `}
         >
@@ -198,15 +201,17 @@ export default function Home() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">開發者數量</CardTitle>
+              <CardTitle className="text-sm font-medium">開發人數</CardTitle>
               <CardContent className="p-0 pt-2">
                 <span className="text-3xl font-bold">{stats.totalAuthors}</span>
               </CardContent>
             </CardHeader>
           </Card>
         </div>
-        <PluginList plugins={plugins} />
 
+        <div className="pt-8">
+          <TrafficChart />
+        </div>
       </main>
 
       <AppFooter>
