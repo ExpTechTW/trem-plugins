@@ -53,7 +53,7 @@ export default function PluginCard({ plugin }: Props) {
                         <TooltipTrigger>
                           最後更新
                           {' '}
-                          {getRelativeTime(plugin.repository.releases.releases[0].published_at, 0)}
+                          {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
                         </TooltipTrigger>
                       </Tooltip>
                     </div>
