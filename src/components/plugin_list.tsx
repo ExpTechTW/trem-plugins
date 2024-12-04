@@ -94,12 +94,12 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
         return direction * a.name.localeCompare(b.name);
 
       case 'updated': {
-        const aDate = new Date(
-          b.repository.releases.releases[0]?.published_at || b.updated_at,
-        ).getTime();
-        const bDate = new Date(
-          a.repository.releases.releases[0]?.published_at || a.updated_at,
-        ).getTime();
+        const aDate = b.repository.releases.releases[0]?.published_at
+          ? new Date(b.repository.releases.releases[0].published_at).getTime()
+          : -Infinity;
+        const bDate = a.repository.releases.releases[0]?.published_at
+          ? new Date(a.repository.releases.releases[0].published_at).getTime()
+          : -Infinity;
         return direction * (aDate - bDate);
       }
 
