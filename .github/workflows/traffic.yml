@@ -1,0 +1,73 @@
+name: Collect Traffic Data
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 00:00 執行
+  workflow_dispatch:  # 允許手動觸發
+
+permissions:
+  contents: write
+
+jobs:
+  collect-traffic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Collect traffic data
+        run: |
+          python3 -c "
+          import json, os
+          from datetime import datetime
+          import requests
+
+          # GitHub API endpoint
+          repo = 'ExpTechTW/trem-plugins'
+          api_url = f'https://api.github.com/repos/{repo}/traffic/views'
+
+          # 發送請求
+          headers = {
+              'Authorization': f'Bearer {os.environ['GITHUB_TOKEN']}',
+              'Accept': 'application/vnd.github.v3+json'
+          }
+          
+          response = requests.get(api_url, headers=headers)
+          traffic_data = response.json()
+          
+          # 讀取現有數據（如果存在）
+          data_file = 'data/traffic.json'
+          if os.path.exists(data_file):
+              with open(data_file, 'r') as f:
+                  existing_data = json.load(f)
+          else:
+              existing_data = {'data': []}
+          
+          # 添加時間戳記
+          traffic_data['collected_at'] = datetime.utcnow().isoformat()
+          
+          # 添加新數據
+          existing_data['data'].append(traffic_data)
+          
+          # 確保 data 目錄存在
+          os.makedirs('data', exist_ok=True)
+          
+          # 保存數據
+          with open(data_file, 'w') as f:
+              json.dump(existing_data, f, indent=2)
+          "
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Commit and push if changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/traffic.json
+          git commit -m "Update traffic data" || exit 0
+          git push
