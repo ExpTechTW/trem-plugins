@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { ChevronDown, Clock, Download, Tag } from 'lucide-react';
+import { CheckCircle, ChevronDown, Clock, Download, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ type Props = Readonly<{
 
 export default function PluginCard({ plugin }: Props) {
   const router = useRouter();
+  const isVerified = plugin.author.includes('ExpTechTW');
 
   const handleCardClick = () => {
     router.push(`/plugins/${plugin.name}`);
@@ -37,7 +38,15 @@ export default function PluginCard({ plugin }: Props) {
       <CardHeader>
         <div className="flex justify-between">
           <div className="flex flex-col gap-2">
-            <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
+              {isVerified && (
+                <div className="flex translate-y-[1px] items-center gap-2">
+                  <CheckCircle size={16} className="text-green-500" />
+                  <CheckCircle size={16} className="text-blue-500" />
+                </div>
+              )}
+            </div>
             <CardDescription>
               <div className="flex flex-col gap-2">
                 <GithubPeople people={plugin.author} />

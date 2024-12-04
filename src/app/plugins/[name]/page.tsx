@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { ArrowLeft, Clock, Download, RefreshCw, Tag } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, RefreshCw, Tag } from 'lucide-react';
 import Link from 'next/link';
 
 import AppFooter from '@/components/footer';
@@ -73,6 +73,7 @@ export default async function PluginPage({
 }) {
   const { name } = await params;
   const plugin = await getPluginData(name);
+  const isVerified = plugin?.author.includes('ExpTechTW');
 
   if (!plugin) {
     return (
@@ -112,12 +113,22 @@ export default async function PluginPage({
           `}
           >
             <Card>
-              <CardHeader className="space-y-3">
-                <CardTitle className="break-words">{plugin.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {plugin.description.zh_tw}
-                </p>
-                <GithubPeople people={plugin.author} />
+              <CardHeader>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
+                    {isVerified && (
+                      <div className="flex translate-y-[1px] items-center gap-2">
+                        <CheckCircle size={16} className="text-green-500" />
+                        <CheckCircle size={16} className="text-blue-500" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {plugin.description.zh_tw}
+                  </p>
+                  <GithubPeople people={plugin.author} />
+                </div>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -320,7 +331,7 @@ export default async function PluginPage({
           md:flex-row
         `}
         >
-          <div>&copy; 2024 ExpTech Studio</div>
+          <div>&copy; 2024 ExpTech Ltd.</div>
         </div>
       </AppFooter>
     </div>
