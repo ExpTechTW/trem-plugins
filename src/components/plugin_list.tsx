@@ -7,6 +7,7 @@ import { useState } from 'react';
 import PluginCard from '@/components/plugin_card';
 import { Button } from '@/components/ui/button';
 
+import { Input } from './ui/input';
 import type { Plugin } from '@/modal/plugin';
 
 type SortField = 'name' | 'updated' | 'downloads';
@@ -115,51 +116,49 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
         md:flex-row
       `}
       >
-        {/* 搜尋框 */}
-        <div className="relative w-full flex-1">
-          <Search className={`
-            absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2
-            text-muted-foreground
-          `}
-          />
-          <input
-            type="text"
-            placeholder="搜尋擴充... (支援多關鍵字搜尋，用空格分隔)"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`
-              h-9 w-full rounded-lg border bg-background pl-10 pr-4
-              focus:border-ring focus:ring-2 focus:ring-ring
-            `}
-          />
-        </div>
+        <Search className="text-muted-foreground" />
 
-        {/* 排序按鈕組 */}
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <SortButton
-            field="name"
-            currentField={sortField}
-            direction={sortDirection}
-            label="名稱"
-            icon={<Text size={16} />}
-            onClick={handleSort}
-          />
-          <SortButton
-            field="updated"
-            currentField={sortField}
-            direction={sortDirection}
-            label="最後更新"
-            icon={<Clock size={16} />}
-            onClick={handleSort}
-          />
-          <SortButton
-            field="downloads"
-            currentField={sortField}
-            direction={sortDirection}
-            label="下載量"
-            icon={<Download size={16} />}
-            onClick={handleSort}
-          />
+        <Input
+          type="text"
+          placeholder="搜尋擴充... (支援多關鍵字搜尋，用空格分隔)"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        <div className="flex items-center gap-2">
+          <Select value={sortField} onValueChange={(v: SortField) => setSortField(v)}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="排序" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">
+                <div className="flex items-center gap-2">
+                  <Text size={18} />
+                  <span>名稱</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="update">
+                <div className="flex items-center gap-2">
+                  <Clock size={18} />
+                  <span>最後更新</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="downloads">
+                <div className="flex items-center gap-2">
+                  <Download size={18} />
+                  <span>下載次數</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortDirection(sortDirection == 'asc' ? 'desc' : 'asc')}
+          >
+            {sortDirection == 'asc' ? <ArrowUpNarrowWide /> : <ArrowDownWideNarrow />}
+          </Button>
         </div>
       </div>
 
