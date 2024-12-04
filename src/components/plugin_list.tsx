@@ -123,7 +123,7 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
             size="icon"
             onClick={() => setSortDirection(sortDirection == 'asc' ? 'desc' : 'asc')}
           >
-            {sortDirection == 'asc' ? <ArrowUpNarrowWide /> : <ArrowDownWideNarrow />}
+            {sortDirection == 'asc' ? <ArrowDownNarrowWide /> : <ArrowUpNarrowWide />}
           </Button>
         </div>
       </div>
