@@ -21,7 +21,7 @@ export default function ReadmeTab({ plugin }: ReadmeProps) {
       try {
         const [owner, repo] = plugin.repository.full_name.split('/');
         const response = await fetch(
-          `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`,
+          `https://raw.githack.com/${owner}/${repo}/main/README.md`,
         );
 
         if (!response.ok) {

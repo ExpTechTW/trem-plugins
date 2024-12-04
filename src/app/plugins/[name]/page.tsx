@@ -23,7 +23,7 @@ async function fetchPlugins(): Promise<Plugin[]> {
     }
 
     const response = await fetch(
-      'https://raw.githubusercontent.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
+      'https://raw.githack.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
       { next: { revalidate: 3600 } },
     );
 
