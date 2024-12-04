@@ -52,5 +52,30 @@ export const formatNumber = (n: number) => {
 };
 
 export const formatTimeString = (time: string) => {
-  return new Date(time).toLocaleString();
+  const date = new Date(time);
+  return date.toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+};
+
+export const getRelativeTime = (time: string) => {
+  const now = new Date();
+  const past = new Date(time);
+  const diffTime = Math.abs(now.getTime() - past.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    if (diffHours === 0) {
+      const diffMinutes = Math.floor(diffTime / (1000 * 60));
+      return `${diffMinutes} 分鐘前`;
+    }
+    return `${diffHours} 小時前`;
+  }
+  return `${diffDays} 天前`;
 };

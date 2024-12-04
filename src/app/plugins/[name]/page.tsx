@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import * as Tabs from '@radix-ui/react-tabs';
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Download, Tag, ArrowLeft } from 'lucide-react';
-import { formatNumber, formatTimeString } from '@/lib/utils';
+import { Download, Tag, ArrowLeft, RefreshCw, Clock } from 'lucide-react';
+import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 import GithubPeople from '@/components/github_people';
 import { Button } from '@/components/ui/button';
 import ReadmeTab from '@/components/readme';
@@ -100,59 +100,104 @@ export default async function PluginPage({
         {/* 資訊區 - 在手機上顯示在上方 */}
         <div className="lg:col-span-1 space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="space-y-3">
               <CardTitle className="break-words">{plugin.name}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground">
                 {plugin.description.zh_tw}
               </p>
+              <GithubPeople people={plugin.author} />
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="text-sm">
-                  資料更新於
-                  {' '}
-                  {formatTimeString(plugin.updated_at)}
+
+            <CardContent className="space-y-6">
+              {/* 資訊區塊 - 使用 Grid 分為左右兩欄 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
+                {/* 左欄 */}
+                <div className="space-y-4">
+                  <div className="text-muted-foreground">
+                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                      <RefreshCw size={16} className="shrink-0" />
+                      <span>資料同步</span>
+                    </div>
+                    <div className="group relative ml-6">
+                      <span className="cursor-help hover:text-foreground transition-colors">
+                        {getRelativeTime(plugin.updated_at)}
+                      </span>
+                      <span className="invisible group-hover:visible absolute left-0 -top-8
+                bg-popover px-2.5 py-1.5 rounded-md text-sm shadow-md whitespace-nowrap
+                border z-10"
+                      >
+                        {formatTimeString(plugin.updated_at)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-muted-foreground">
+                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                      <Tag size={16} className="shrink-0" />
+                      <span>最新版本</span>
+                    </div>
+                    <div className="ml-6 hover:text-foreground transition-colors">
+                      {plugin.repository.releases.releases[0]?.tag_name ?? '無版本'}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm">
-                  {plugin.repository.releases.releases[0]?.published_at
-                    ? `最後發布於 ${formatTimeString(plugin.repository.releases.releases[0].published_at)}`
-                    : '尚未發布'}
+
+                {/* 右欄 */}
+                <div className="space-y-4">
+                  <div className="text-muted-foreground">
+                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                      <Clock size={16} className="shrink-0" />
+                      <span>最後更新</span>
+                    </div>
+                    {plugin.repository.releases.releases[0]?.published_at
+                      ? (
+                          <div className="group relative ml-6">
+                            <span className="cursor-help hover:text-foreground transition-colors">
+                              {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
+                            </span>
+                            <span className="invisible group-hover:visible absolute left-0 -top-8
+                  bg-popover px-2.5 py-1.5 rounded-md text-sm shadow-md whitespace-nowrap
+                  border z-10"
+                            >
+                              {formatTimeString(plugin.repository.releases.releases[0].published_at)}
+                            </span>
+                          </div>
+                        )
+                      : (
+                          <div className="ml-6">尚未發布</div>
+                        )}
+                  </div>
+
+                  <div className="text-muted-foreground">
+                    <div className="flex items-center gap-2 font-medium mb-1.5">
+                      <Download size={16} className="shrink-0" />
+                      <span>總下載量</span>
+                    </div>
+                    <div className="ml-6 hover:text-foreground transition-colors">
+                      {formatNumber(plugin.repository.releases.total_downloads)}
+                      {' '}
+                      次下載
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <GithubPeople people={plugin.author} />
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Download size={16} />
-                  <span>
-                    {formatNumber(plugin.repository.releases.total_downloads)}
-                    {' '}
-                    次下載
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Tag size={16} />
-                  <span>{plugin.repository.releases.releases[0]?.tag_name ?? '無版本'}</span>
-                </div>
-
+              {/* GitHub 連結和安裝按鈕 */}
+              <div className="space-y-4 border-t pt-4">
                 <Link
                   href={plugin.link}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <SiGithub size={16} />
+                  <SiGithub size={16} className="shrink-0" />
                   <span>GitHub</span>
                 </Link>
-              </div>
 
-              {plugin.repository.releases.releases.length > 0 && (
-                <div className="space-y-2">
+                {plugin.repository.releases.releases.length > 0 && (
                   <InstallButtons plugin={plugin} />
-                </div>
-              )}
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

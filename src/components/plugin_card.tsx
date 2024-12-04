@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import GithubPeople from './github_people';
-import { Download, Tag } from 'lucide-react';
+import { Download, Tag, Clock } from 'lucide-react';
 import { formatNumber, formatTimeString } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -29,17 +29,15 @@ export default function PluginCard({ plugin }: Props) {
             <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
             <CardDescription>
               <div className="flex flex-col gap-2">
-                <span>
-                  資料更新於
-                  {' '}
-                  {formatTimeString(plugin.updated_at)}
-                </span>
-                <span>
-                  {plugin.repository.releases.releases[0]?.published_at
-                    ? `最後發布於 ${formatTimeString(plugin.repository.releases.releases[0].published_at)}`
-                    : '尚未發布'}
-                </span>
                 <GithubPeople people={plugin.author} />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock size={16} className="shrink-0" />
+                  <span>
+                    {plugin.repository.releases.releases[0]?.published_at
+                      ? `最後更新 ${formatTimeString(plugin.repository.releases.releases[0].published_at)}`
+                      : '尚未發布'}
+                  </span>
+                </div>
               </div>
             </CardDescription>
           </div>
@@ -58,9 +56,7 @@ export default function PluginCard({ plugin }: Props) {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          <p>
-            {plugin.description.zh_tw}
-          </p>
+          <p>{plugin.description.zh_tw}</p>
         </div>
       </CardContent>
       <CardFooter>
@@ -68,15 +64,11 @@ export default function PluginCard({ plugin }: Props) {
           <div className="flex gap-4 items-center">
             <div className="flex gap-2 items-center text-muted-foreground">
               <Tag size={16} />
-              <span>
-                {plugin.repository.releases.releases[0]?.tag_name ?? '無'}
-              </span>
+              <span>{plugin.repository.releases.releases[0]?.tag_name ?? '無'}</span>
             </div>
             <div className="flex gap-2 items-center text-muted-foreground">
               <Download size={16} />
-              <span>
-                {formatNumber(plugin.repository.releases.total_downloads)}
-              </span>
+              <span>{formatNumber(plugin.repository.releases.total_downloads)}</span>
             </div>
           </div>
         </div>
