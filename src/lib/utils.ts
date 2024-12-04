@@ -61,17 +61,23 @@ export const formatTimeString = (time: moment.MomentInput) => {
   return moment(time).format('YYYY/MM/DD HH:mm:ss');
 };
 
-export const getRelativeTime = (time: moment.MomentInput, utc: boolean = false) => {
-  const baseTime = utc ? moment.utc(time).add(8, 'hours') : moment(time);
-  const currentTime = moment.utc().add(8, 'hours');
+export const getRelativeTime = (time: moment.MomentInput) => {
+  const inputTime = moment(time).utcOffset(8);
+  const currentTime = moment().utcOffset(8);
 
-  const diffMs = currentTime.diff(baseTime);
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  const diffMs = currentTime.diff(inputTime);
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-  if (hours === 0) {
-    if (minutes === 0) return '剛剛';
-    return `${minutes}分鐘前`;
+  if (diffHours === 0) {
+    if (diffMinutes === 0) return '剛剛';
+    return `${diffMinutes}分鐘前`;
   }
-  return `${hours}小時前`;
+  else if (diffHours < 24) {
+    return `${diffHours}小時前`;
+  }
+  else {
+    const days = Math.floor(diffHours / 24);
+    return `${days}天前`;
+  }
 };

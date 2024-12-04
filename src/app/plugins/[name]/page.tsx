@@ -168,7 +168,7 @@ export default async function PluginPage({
                         ? (
                             <Tooltip>
                               <TooltipContent>{formatTimeString(plugin.repository.releases.releases[0].published_at)}</TooltipContent>
-                              <TooltipTrigger>{getRelativeTime(plugin.repository.releases.releases[0].published_at, true)}</TooltipTrigger>
+                              <TooltipTrigger>{getRelativeTime(plugin.repository.releases.releases[0].published_at)}</TooltipTrigger>
                             </Tooltip>
                           )
                         : (
