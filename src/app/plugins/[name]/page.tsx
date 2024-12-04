@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Download, Tag, ArrowLeft, RefreshCw, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, Download, RefreshCw, Tag } from 'lucide-react';
 import Link from 'next/link';
 
 import AppFooter from '@/components/footer';
@@ -137,7 +137,7 @@ export default async function PluginPage({
                       </div>
                       <Tooltip>
                         <TooltipContent>{formatTimeString(plugin.updated_at)}</TooltipContent>
-                        <TooltipTrigger>{getRelativeTime(plugin.updated_at)}</TooltipTrigger>
+                        <TooltipTrigger>{getRelativeTime(plugin.updated_at, 8)}</TooltipTrigger>
                       </Tooltip>
                     </div>
 
@@ -168,7 +168,7 @@ export default async function PluginPage({
                         ? (
                             <Tooltip>
                               <TooltipContent>{formatTimeString(plugin.repository.releases.releases[0].published_at)}</TooltipContent>
-                              <TooltipTrigger>{getRelativeTime(plugin.repository.releases.releases[0].published_at)}</TooltipTrigger>
+                              <TooltipTrigger>{getRelativeTime(plugin.repository.releases.releases[0].published_at, 0)}</TooltipTrigger>
                             </Tooltip>
                           )
                         : (

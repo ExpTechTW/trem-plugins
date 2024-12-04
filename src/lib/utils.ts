@@ -61,6 +61,9 @@ export const formatTimeString = (time: moment.MomentInput) => {
   return moment(time).format('YYYY/MM/DD HH:mm:ss');
 };
 
-export const getRelativeTime = (time: moment.MomentInput) => {
-  return moment(time).fromNow();
+export const getRelativeTime = (
+  time: moment.MomentInput,
+  timezone: number = 8,
+) => {
+  return moment(time).utcOffset(timezone).fromNow();
 };

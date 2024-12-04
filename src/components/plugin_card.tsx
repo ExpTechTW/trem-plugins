@@ -1,11 +1,11 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { ChevronDown, Download, Tag, Clock } from 'lucide-react';
+import { ChevronDown, Clock, Download, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatNumber, getRelativeTime, formatTimeString } from '@/lib/utils';
+import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import GithubPeople from './github_people';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -29,7 +29,7 @@ export default function PluginCard({ plugin }: Props) {
       className={`
         flex h-full cursor-pointer flex-col
         transition-[color_background-color_border-color]
-        dark:glow:bg-primary/[.12] dark:hover:bg-primary/[.08]
+        dark:hover:bg-primary/[.08] dark:glow:bg-primary/[.12]
         glow:border-primary/40 glow:bg-primary/[.08]
         hover:border-primary/20 hover:bg-primary/[.04]
       `}
@@ -53,7 +53,7 @@ export default function PluginCard({ plugin }: Props) {
                         <TooltipTrigger>
                           最後更新
                           {' '}
-                          {getRelativeTime(plugin.repository.releases.releases[0].published_at)}
+                          {getRelativeTime(plugin.repository.releases.releases[0].published_at, 0)}
                         </TooltipTrigger>
                       </Tooltip>
                     </div>
