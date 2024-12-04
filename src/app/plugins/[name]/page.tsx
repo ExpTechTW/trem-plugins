@@ -132,7 +132,7 @@ export default async function PluginPage({
                             dark:text-green-700
                           `}
                         />
-                        官方製作
+                        官方認證
                       </Badge>
                       <Badge className={`
                         flex items-center gap-1.5 py-1 text-xs text-blue-500
