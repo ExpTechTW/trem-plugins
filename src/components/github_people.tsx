@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
-interface Props {
+type Props = Readonly<{
   people: string[];
-}
+}>;
 
 export default function GithubPeople({ people }: Props) {
   const sliced = people.slice(0, 3);

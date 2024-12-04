@@ -12,9 +12,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 import type { Plugin } from '@/modal/plugin';
 
-interface Props {
+type Props = Readonly<{
   plugin: Plugin;
-}
+}>;
 
 export default function PluginCard({ plugin }: Props) {
   const router = useRouter();
