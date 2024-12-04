@@ -10,9 +10,29 @@ interface InstallButtonsProps {
 
 export function InstallButtons({ plugin }: InstallButtonsProps) {
   const [mounted, setMounted] = useState(false);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    const checkAppInstalled = () => {
+      try {
+        if ((navigator as any).msProtocolsHandler) {
+          setIsAppInstalled(true);
+          return;
+        }
+
+        if ('registerProtocolHandler' in navigator) {
+          setIsAppInstalled(true);
+          return;
+        }
+      }
+      catch {
+        setIsAppInstalled(false);
+      }
+    };
+
+    checkAppInstalled();
   }, []);
 
   if (!plugin.repository.releases.releases.length) {
@@ -26,20 +46,6 @@ export function InstallButtons({ plugin }: InstallButtonsProps) {
     window.location.href = tremUrl;
   };
 
-  const checkProtocol = () => {
-    if (!mounted) return false;
-    try {
-      const testLink = document.createElement('a');
-      testLink.href = 'trem-lite://test';
-      return testLink.href === 'trem-lite://test';
-    }
-    catch {
-      return false;
-    }
-  };
-
-  const showTremButton = checkProtocol();
-
   return (
     <div className="space-y-2">
       <Button className="w-full" asChild>
@@ -48,7 +54,7 @@ export function InstallButtons({ plugin }: InstallButtonsProps) {
         </a>
       </Button>
 
-      {mounted && showTremButton && (
+      {mounted && isAppInstalled && (
         <Button
           className="w-full"
           variant="secondary"

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import * as Tabs from '@radix-ui/react-tabs';
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Download, Tag } from 'lucide-react';
+import { Download, Tag, ArrowLeft } from 'lucide-react';
 import { formatNumber, formatTimeString } from '@/lib/utils';
 import GithubPeople from '@/components/github_people';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,6 @@ async function getPlugins(): Promise<Plugin[]> {
 
 export async function generateStaticParams() {
   const plugins = await getPlugins();
-
   return plugins.map((plugin) => ({
     name: plugin.name,
   }));
@@ -60,13 +59,23 @@ export default async function PluginPage({
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-4 gap-6">
-        {/* 左側資訊區 */}
-        <div className="col-span-1 space-y-6">
+    <main className="container mx-auto px-4 py-4 sm:py-8">
+      {/* 返回按鈕 */}
+      <div className="mb-4">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/" className="flex items-center gap-2">
+            <ArrowLeft size={16} />
+            <span>返回首頁</span>
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* 資訊區 - 在手機上顯示在上方 */}
+        <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{plugin.name}</CardTitle>
+              <CardTitle className="break-words">{plugin.name}</CardTitle>
               <p className="text-sm text-muted-foreground mt-2">
                 {plugin.description.zh_tw}
               </p>
@@ -122,10 +131,10 @@ export default async function PluginPage({
           </Card>
         </div>
 
-        {/* 右側內容區 */}
-        <div className="col-span-3">
+        {/* 內容區 */}
+        <div className="lg:col-span-3">
           <Tabs.Root defaultValue="readme" className="space-y-4">
-            <Tabs.List className="flex p-1 gap-2 bg-muted rounded-lg" aria-label="選擇內容">
+            <Tabs.List className="flex flex-wrap p-1 gap-2 bg-muted rounded-lg" aria-label="選擇內容">
               <Tabs.Trigger
                 value="readme"
                 className="flex-1 px-3 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow transition-colors"
@@ -148,22 +157,20 @@ export default async function PluginPage({
 
             <Tabs.Content value="readme" className="outline-none">
               <Card>
-                <Tabs.Content value="readme" className="outline-none">
-                  <ReadmeTab plugin={plugin} />
-                </Tabs.Content>
+                <ReadmeTab plugin={plugin} />
               </Card>
             </Tabs.Content>
 
             <Tabs.Content value="versions" className="outline-none">
               <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="space-y-6">
                     {plugin.repository.releases.releases.map((release) => (
                       <div key={release.tag_name} className="border-b pb-4 last:border-0">
-                        <div className="flex justify-between items-start mb-2">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                           <h3 className="font-medium">
                             {release.tag_name}
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="block sm:inline text-sm text-muted-foreground sm:ml-2">
                               (
                               {new Date(release.published_at).toLocaleDateString('zh-TW')}
                               )
@@ -192,12 +199,12 @@ export default async function PluginPage({
 
             <Tabs.Content value="dependencies" className="outline-none">
               <Card>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.entries(plugin.dependencies).map(([key, value]) => (
                       <div key={key} className="p-4 border rounded-lg">
-                        <div className="font-medium">{key}</div>
-                        <div className="text-sm text-muted-foreground">{value}</div>
+                        <div className="font-medium break-words">{key}</div>
+                        <div className="text-sm text-muted-foreground break-words">{value}</div>
                       </div>
                     ))}
                   </div>

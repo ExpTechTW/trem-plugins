@@ -34,7 +34,7 @@ export default function ReadmeTab({ plugin }: ReadmeProps) {
       }
       catch (err) {
         setError('無法載入 README 內容');
-        console.error('Error fetching README:', err);
+        console.log('Error fetching README:', err);
       }
       finally {
         setLoading(false);
