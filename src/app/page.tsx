@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  Moon,
-  Sun,
-  RefreshCw,
-  AlertCircle,
-} from 'lucide-react';
+import { Moon, Sun, RefreshCw, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import PluginList from '@/components/plugin_list';
