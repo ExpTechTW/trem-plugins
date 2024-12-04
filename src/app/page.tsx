@@ -210,7 +210,7 @@ export default function Home() {
       )}
 
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-foreground">TREM 擴充</h1>
+        <h1 className="text-3xl font-bold text-foreground">TREM 擴充商店</h1>
         <div className="flex gap-4">
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}

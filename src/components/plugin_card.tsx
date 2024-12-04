@@ -23,11 +23,15 @@ export default function PluginCard({ plugin }: Props) {
             <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
             <CardDescription>
               <div className="flex flex-col gap-2">
-
                 <span>
-                  更新於
+                  資料更新於
                   {' '}
                   {formatTimeString(plugin.updated_at)}
+                </span>
+                <span>
+                  {plugin.repository.releases.releases[0]?.published_at
+                    ? `最後發布於 ${formatTimeString(plugin.repository.releases.releases[0].published_at)}`
+                    : '尚未發布'}
                 </span>
                 <GithubPeople people={plugin.author} />
               </div>
