@@ -1,11 +1,8 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import GithubPeople from './github_people';
-import { ChevronDown, Download, Tag } from 'lucide-react';
+import { Download, Tag } from 'lucide-react';
 import { formatNumber, formatTimeString } from '@/lib/utils';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { useRouter } from 'next/navigation';
 
 import type { Plugin } from '@/modal/plugin';
@@ -64,14 +61,6 @@ export default function PluginCard({ plugin }: Props) {
           <p>
             {plugin.description.zh_tw}
           </p>
-          <div className="flex gap-2 items-center text-muted-foreground flex-wrap">
-            {Object.entries(plugin.dependencies).map(([key, value]) => (
-              <Badge key={key} variant="secondary">
-                {key}
-                {value}
-              </Badge>
-            ))}
-          </div>
         </div>
       </CardContent>
       <CardFooter>
@@ -90,41 +79,6 @@ export default function PluginCard({ plugin }: Props) {
               </span>
             </div>
           </div>
-          {plugin.repository.releases.releases.length > 0
-          && (
-            <div className="flex" onClick={(e) => e.stopPropagation()}>
-              <Button className={plugin.repository.releases.releases.length > 1 ? 'rounded-e-none' : ''} asChild>
-                <a
-                  href={`https://github.com/${plugin.repository.full_name}/releases/latest/download/${plugin.name}.trem`}
-                  download
-                >
-                  下載
-                </a>
-              </Button>
-              {plugin.repository.releases.releases.length > 1
-              && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" className="rounded-s-none w-6">
-                      <ChevronDown size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {plugin.repository.releases.releases.map((release) => (
-                      <DropdownMenuItem key={release.tag_name} asChild>
-                        <a
-                          href={`https://github.com/${plugin.repository.full_name}/releases/download/${release.tag_name}/${plugin.name}.trem`}
-                          download
-                        >
-                          {release.tag_name}
-                        </a>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          )}
         </div>
       </CardFooter>
     </Card>

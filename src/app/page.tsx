@@ -1,36 +1,32 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-
 import {
   Search,
-  SortAsc,
-  Grid,
-  List,
   Moon,
   Sun,
   RefreshCw,
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react';
 import PluginCard from '@/components/plugin_card';
 import type { Plugin } from '@/modal/plugin';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatNumber } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [filteredPlugins, setFilteredPlugins] = useState<Plugin[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('darkMode') === 'true';
     }
     return false;
   });
-  const [showStable, setShowStable] = useState(true);
-  const [showRc, setShowRc] = useState(false);
-  const [showPre, setShowPre] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [error, setError] = useState<string | null>(null);
   const maxRetries = 3;
@@ -104,54 +100,58 @@ export default function Home() {
     });
   };
 
+  const filterPlugins = useCallback(
+    (term: string) => {
+      const filtered = plugins.filter((plugin) => {
+        if (!plugin) return false;
+
+        const searchFields: string[] = [];
+
+        if (typeof plugin.name === 'string') {
+          searchFields.push(plugin.name.toLowerCase());
+        }
+
+        if (plugin.description?.zh_tw && typeof plugin.description.zh_tw === 'string') {
+          searchFields.push(plugin.description.zh_tw.toLowerCase());
+        }
+
+        if (Array.isArray(plugin.author)) {
+          searchFields.push(...plugin.author
+            .filter((author): author is string => typeof author === 'string')
+            .map((author) => author.toLowerCase()),
+          );
+        }
+
+        const searchTerms = term.toLowerCase().split(' ').filter(Boolean);
+
+        return searchTerms.every((searchTerm) =>
+          searchFields.some((field) => field.includes(searchTerm)),
+        );
+      });
+
+      const sortedPlugins = [...filtered].sort((a, b) => {
+        const downloadsA = Number(a?.repository?.releases?.total_downloads) || 0;
+        const downloadsB = Number(b?.repository?.releases?.total_downloads) || 0;
+        return sortOrder === 'asc'
+          ? downloadsA - downloadsB
+          : downloadsB - downloadsA;
+      });
+
+      setFilteredPlugins(sortedPlugins);
+    },
+    [plugins, sortOrder],
+  );
+
   useEffect(() => {
     void fetchPlugins();
   }, [fetchPlugins]);
 
-  const handleStableToggle = () => {
-    setShowStable((prev) => !prev);
-  };
-
-  const handleRcToggle = () => {
-    setShowRc((prev) => !prev);
-  };
-
-  const handlePreToggle = () => {
-    setShowPre((prev) => !prev);
-  };
-
-  const filterPlugins = useCallback(
-    (term: string) => {
-      let filtered = plugins.filter(
-        (plugin) =>
-          (plugin.name.toLowerCase().includes(term.toLowerCase())
-            || plugin.description.zh_tw
-              .toLowerCase()
-              .includes(term.toLowerCase())
-              || plugin.author.some((author) =>
-                author.toLowerCase().includes(term.toLowerCase()),
-              ))
-              && ((showStable && !plugin.version.includes('-'))
-                || (showRc && plugin.version.includes('rc'))
-                || (showPre && plugin.version.includes('pre'))),
-      );
-
-      filtered = [...filtered].sort((a, b) => {
-        const comparison = a.name.localeCompare(b.name);
-        return sortOrder === 'asc' ? comparison : -comparison;
-      });
-
-      setFilteredPlugins(filtered);
-    },
-    [plugins, showStable, showRc, showPre, sortOrder],
-  );
-
   useEffect(() => {
     filterPlugins(searchTerm);
-  }, [filterPlugins, searchTerm, showStable, showRc, showPre]);
+  }, [filterPlugins, searchTerm]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value.toLowerCase();
+    const term = event.target.value;
     setSearchTerm(term);
     filterPlugins(term);
   };
@@ -159,10 +159,7 @@ export default function Home() {
   const stats = {
     totalPlugins: plugins.length,
     totalDownloads: plugins.reduce((sum, plugin) => {
-      if (!plugin.repository?.releases?.total_downloads) {
-        return sum;
-      }
-      return sum + plugin.repository.releases.total_downloads;
+      return sum + (plugin.repository?.releases?.total_downloads || 0);
     }, 0),
     totalAuthors: new Set(plugins.flatMap((p) => p.author)).size,
   };
@@ -185,12 +182,12 @@ export default function Home() {
           <div className="text-center space-y-4">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
             <h2 className="text-xl font-semibold">{error}</h2>
-            <button
+            <Button
               onClick={() => void fetchPlugins()}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              variant="default"
             >
               重試
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -209,115 +206,73 @@ export default function Home() {
       )}
 
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-foreground">TREM 擴充商店</h1>
+        <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
         <div className="flex gap-4">
-          <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            {viewMode === 'grid'
-              ? (
-                  <List className="h-5 w-5" />
-                )
-              : (
-                  <Grid className="h-5 w-5" />
-                )}
-          </button>
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={handleDarkModeToggle}
-            className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
-          <CardHeader className="pb-2">擴充總數</CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">{stats.totalPlugins}</span>
-          </CardContent>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">擴充總數</CardTitle>
+            <CardContent className="p-0 pt-2">
+              <span className="text-3xl font-bold">{stats.totalPlugins}</span>
+            </CardContent>
+          </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-2">總下載量</CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">{stats.totalDownloads}</span>
-          </CardContent>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">總下載量</CardTitle>
+            <CardContent className="p-0 pt-2">
+              <span className="text-3xl font-bold">{formatNumber(stats.totalDownloads)}</span>
+            </CardContent>
+          </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-2">開發者數量</CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">{stats.totalAuthors}</span>
-          </CardContent>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">開發者數量</CardTitle>
+            <CardContent className="p-0 pt-2">
+              <span className="text-3xl font-bold">{stats.totalAuthors}</span>
+            </CardContent>
+          </CardHeader>
         </Card>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="搜尋擴充..."
+            placeholder="搜尋擴充... (支援多關鍵字搜尋，用空格分隔)"
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background focus:ring-2 focus:ring-ring focus:border-ring"
           />
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={handleStableToggle}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              showStable
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            穩定版
-          </button>
-
-          <button
-            onClick={handleRcToggle}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              showRc
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            發布候選
-          </button>
-
-          <button
-            onClick={handlePreToggle}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              showPre
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            預覽版
-          </button>
-        </div>
-
-        <button
+        <Button
+          variant="outline"
           onClick={() => {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
             filterPlugins(searchTerm);
           }}
-          className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+          className="flex items-center gap-2"
         >
-          <SortAsc className="h-5 w-5" />
+          {sortOrder === 'asc' ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+          下載量
           {sortOrder === 'asc' ? '升序' : '降序'}
-        </button>
+        </Button>
       </div>
 
       <div
-        className={`${
-          viewMode === 'grid'
-            ? 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'
-            : 'flex flex-col gap-4'
-        }`}
+        className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
       >
         {filteredPlugins.map((plugin) => (
           <PluginCard key={plugin.name} plugin={plugin} />
@@ -326,13 +281,13 @@ export default function Home() {
 
       {filteredPlugins.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-xl text-gray-500 dark:text-gray-400">
+          <p className="text-xl text-muted-foreground">
             沒有找到符合條件的擴充
           </p>
         </div>
       )}
 
-      <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+      <footer className="mt-12 text-center text-sm text-muted-foreground">
         <p>
           © 2024 TREM Plugins. 所有數據更新於
           {' '}
