@@ -48,21 +48,36 @@ export function InstallButtons({ plugin }: InstallButtonsProps) {
 
   return (
     <div className="space-y-2">
-      <Button className="w-full" asChild>
-        <a href={downloadUrl} download>
-          下載最新版本
-        </a>
-      </Button>
-
-      {mounted && isAppInstalled && (
-        <Button
-          className="w-full"
-          variant="secondary"
-          onClick={handleTremOpen}
-        >
-          用 TREM-Lite 開啟
-        </Button>
-      )}
+      {mounted && isAppInstalled
+        ? (
+            <>
+              <Button
+                className="w-full"
+                onClick={handleTremOpen}
+              >
+                下載至 TREM-Lite
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                asChild
+              >
+                <a href={downloadUrl} download>
+                  下載最新版本
+                </a>
+              </Button>
+            </>
+          )
+        : (
+            <Button
+              className="w-full"
+              asChild
+            >
+              <a href={downloadUrl} download>
+                下載最新版本
+              </a>
+            </Button>
+          )}
     </div>
   );
 }
