@@ -3,7 +3,7 @@ name: Collect Traffic Data
 on:
   schedule:
     - cron: '0 0 * * *'  # 每天 UTC 00:00 執行
-  workflow_dispatch:  # 允許手動觸發
+  workflow_dispatch:  
 
 permissions:
   contents: write
@@ -20,46 +20,47 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install dependencies
+        run: pip install requests
+
       - name: Collect traffic data
         run: |
           python3 -c "
           import json, os
-          from datetime import datetime
+          from datetime import datetime, timedelta
           import requests
 
-          # GitHub API endpoint
           repo = 'ExpTechTW/trem-plugins'
           api_url = f'https://api.github.com/repos/{repo}/traffic/views'
 
-          # 發送請求
           headers = {
               'Authorization': f'Bearer {os.environ['GITHUB_TOKEN']}',
               'Accept': 'application/vnd.github.v3+json'
           }
           
           response = requests.get(api_url, headers=headers)
-          traffic_data = response.json()
+          new_data = response.json()
           
-          # 讀取現有數據（如果存在）
-          data_file = 'data/traffic.json'
-          if os.path.exists(data_file):
-              with open(data_file, 'r') as f:
-                  existing_data = json.load(f)
+          # 加入時間戳記
+          new_data['collected_at'] = datetime.utcnow().isoformat()
+          
+          # 讀取現有數據或創建新的
+          if os.path.exists('traffic.json'):
+              with open('traffic.json', 'r') as f:
+                  data = json.load(f)
           else:
-              existing_data = {'data': []}
-          
-          # 添加時間戳記
-          traffic_data['collected_at'] = datetime.utcnow().isoformat()
+              data = []
           
           # 添加新數據
-          existing_data['data'].append(traffic_data)
+          data.append(new_data)
           
-          # 確保 data 目錄存在
-          os.makedirs('data', exist_ok=True)
+          # 只保留最近 30 天的數據
+          thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+          data = [d for d in data if datetime.fromisoformat(d['collected_at']) > thirty_days_ago]
           
           # 保存數據
-          with open(data_file, 'w') as f:
-              json.dump(existing_data, f, indent=2)
+          with open('traffic.json', 'w') as f:
+              json.dump(data, f, indent=2)
           "
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -68,6 +69,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/traffic.json
+          git add traffic.json
           git commit -m "Update traffic data" || exit 0
           git push
