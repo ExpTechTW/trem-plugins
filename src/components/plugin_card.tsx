@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { CheckCircle, ChevronDown, Clock, Download, Tag } from 'lucide-react';
+import { CheckCircle, ChevronDown, Clock, Download, ShieldCheck, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -42,8 +42,20 @@ export default function PluginCard({ plugin }: Props) {
               <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
               {isVerified && (
                 <div className="flex translate-y-[1px] items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" />
-                  <CheckCircle size={16} className="text-blue-500" />
+                  <CheckCircle
+                    size={16}
+                    className={`
+                      text-green-500
+                      dark:text-green-700
+                    `}
+                  />
+                  <ShieldCheck
+                    size={16}
+                    className={`
+                      text-blue-500
+                      dark:text-blue-700
+                    `}
+                  />
                 </div>
               )}
             </div>

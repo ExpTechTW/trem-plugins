@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { ArrowLeft, CheckCircle, Clock, Download, RefreshCw, Tag } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, RefreshCw, ShieldCheck, Tag } from 'lucide-react';
 import Link from 'next/link';
 
 import AppFooter from '@/components/footer';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -115,15 +116,41 @@ export default async function PluginPage({
             <Card>
               <CardHeader>
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
-                    {isVerified && (
-                      <div className="flex translate-y-[1px] items-center gap-2">
-                        <CheckCircle size={16} className="text-green-500" />
-                        <CheckCircle size={16} className="text-blue-500" />
-                      </div>
-                    )}
-                  </div>
+                  <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
+                  {isVerified && (
+                    <div className="flex translate-y-[1px] items-center gap-2">
+                      <Badge className={`
+                        flex items-center gap-1.5 py-1 text-xs text-green-500
+                        dark:text-green-700 dark:hover:bg-green-900/40
+                        hover:bg-green-100/80
+                      `}
+                      >
+                        <CheckCircle
+                          size={16}
+                          className={`
+                            text-green-500
+                            dark:text-green-700
+                          `}
+                        />
+                        官方製作
+                      </Badge>
+                      <Badge className={`
+                        flex items-center gap-1.5 py-1 text-xs text-blue-500
+                        dark:text-blue-700 dark:hover:bg-blue-900/40
+                        hover:bg-blue-100/80
+                      `}
+                      >
+                        <ShieldCheck
+                          size={16}
+                          className={`
+                            text-blue-500
+                            dark:text-blue-700
+                          `}
+                        />
+                        安全載入
+                      </Badge>
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     {plugin.description.zh_tw}
                   </p>
