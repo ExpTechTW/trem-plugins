@@ -1,5 +1,4 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import * as Tabs from '@radix-ui/react-tabs';
 import { Download, Tag, ArrowLeft, RefreshCw, Clock } from 'lucide-react';
 import Link from 'next/link';
 
@@ -8,6 +7,7 @@ import { InstallButtons } from '@/components/install';
 import ReadmeTab from '@/components/readme';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import type { Plugin } from '@/modal/plugin';
@@ -249,9 +249,9 @@ export default async function PluginPage({
 
         {/* 內容區 */}
         <div className="lg:col-span-3">
-          <Tabs.Root defaultValue="readme" className="space-y-4">
-            <Tabs.List className="flex flex-wrap gap-2 rounded-lg bg-muted p-1" aria-label="選擇內容">
-              <Tabs.Trigger
+          <Tabs defaultValue="readme" className="space-y-4">
+            <TabsList className="flex flex-wrap gap-2 rounded-lg bg-muted p-1" aria-label="選擇內容">
+              <TabsTrigger
                 value="readme"
                 className={`
                   flex-1 rounded-md px-3 py-2 text-sm font-medium
@@ -261,8 +261,8 @@ export default async function PluginPage({
                 `}
               >
                 說明文件
-              </Tabs.Trigger>
-              <Tabs.Trigger
+              </TabsTrigger>
+              <TabsTrigger
                 value="versions"
                 className={`
                   flex-1 rounded-md px-3 py-2 text-sm font-medium
@@ -272,8 +272,8 @@ export default async function PluginPage({
                 `}
               >
                 版本列表
-              </Tabs.Trigger>
-              <Tabs.Trigger
+              </TabsTrigger>
+              <TabsTrigger
                 value="dependencies"
                 className={`
                   flex-1 rounded-md px-3 py-2 text-sm font-medium
@@ -283,16 +283,16 @@ export default async function PluginPage({
                 `}
               >
                 相依性
-              </Tabs.Trigger>
-            </Tabs.List>
+              </TabsTrigger>
+            </TabsList>
 
-            <Tabs.Content value="readme" className="outline-none">
+            <TabsContent value="readme" className="outline-none">
               <Card>
                 <ReadmeTab plugin={plugin} />
               </Card>
-            </Tabs.Content>
+            </TabsContent>
 
-            <Tabs.Content value="versions" className="outline-none">
+            <TabsContent value="versions" className="outline-none">
               <Card>
                 <CardContent className={`
                   p-4
@@ -344,9 +344,9 @@ export default async function PluginPage({
                   </div>
                 </CardContent>
               </Card>
-            </Tabs.Content>
+            </TabsContent>
 
-            <Tabs.Content value="dependencies" className="outline-none">
+            <TabsContent value="dependencies" className="outline-none">
               <Card>
                 <CardContent className={`
                   p-4
@@ -372,8 +372,8 @@ export default async function PluginPage({
                   </div>
                 </CardContent>
               </Card>
-            </Tabs.Content>
-          </Tabs.Root>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </main>

@@ -2,12 +2,12 @@ import { SiGithub } from '@icons-pack/react-simple-icons';
 import { ChevronDown, Download, Tag, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatNumber, getRelativeTime, formatTimeString } from '@/lib/utils';
 
 import GithubPeople from './github_people';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 import type { Plugin } from '@/modal/plugin';
 
