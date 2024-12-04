@@ -6,29 +6,20 @@ import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-import type { ClassValue } from 'clsx';
-
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
 const DialogClose = DialogPrimitive.Close;
 
-interface DialogPortalProps extends DialogPrimitive.DialogPortalProps {
-  className?: string;
-  children?: React.ReactNode;
-}
-
-const DialogPortal: React.FC<DialogPortalProps> = ({ className, ...props }) => (
-  <DialogPrimitive.Portal className={cn(className)} {...props} />
+const DialogPortal = ({
+  ...props
+}: DialogPrimitive.DialogPortalProps) => (
+  <DialogPrimitive.Portal {...props} />
 );
 DialogPortal.displayName = DialogPrimitive.Portal.displayName;
 
-interface DialogOverlayProps extends DialogPrimitive.DialogOverlayProps {
-  className?: string;
-}
-
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
-  DialogOverlayProps
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
@@ -45,14 +36,9 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-interface DialogContentProps extends DialogPrimitive.DialogContentProps {
-  className?: string;
-  children?: React.ReactNode;
-}
-
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  DialogContentProps
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
@@ -97,55 +83,43 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
-}
-
-const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        `
-          flex flex-col space-y-1.5 text-center
-          sm:text-left
-        `,
-        className,
-      )}
-      {...props}
-    />
-  ),
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      `
+        flex flex-col space-y-1.5 text-center
+        sm:text-left
+      `,
+      className,
+    )}
+    {...props}
+  />
 );
 DialogHeader.displayName = 'DialogHeader';
 
-interface DialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
-}
-
-const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        `
-          flex flex-col-reverse
-          sm:flex-row sm:justify-end sm:space-x-2
-        `,
-        className,
-      )}
-      {...props}
-    />
-  ),
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      `
+        flex flex-col-reverse
+        sm:flex-row sm:justify-end sm:space-x-2
+      `,
+      className,
+    )}
+    {...props}
+  />
 );
 DialogFooter.displayName = 'DialogFooter';
 
-interface DialogTitleProps extends DialogPrimitive.DialogTitleProps {
-  className?: string;
-}
-
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
-  DialogTitleProps
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
@@ -158,14 +132,9 @@ const DialogTitle = React.forwardRef<
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
-interface DialogDescriptionProps
-  extends DialogPrimitive.DialogDescriptionProps {
-  className?: string;
-}
-
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
-  DialogDescriptionProps
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
