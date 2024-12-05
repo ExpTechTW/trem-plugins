@@ -13,10 +13,16 @@ import type { Plugin, Release } from '@/modal/plugin';
 
 const VersionItem = ({ release, plugin }: { release: Release; plugin: Plugin }) => (
   <div className="grid grid-cols-[1fr_auto] items-start gap-4">
-    <div className="min-w-0">
-      <div className="flex items-center gap-4 font-medium">
-        <span className="min-w-[80px]">{release.tag_name}</span>
-        <VersionBadge version={release.tag_name} />
+    <div className="flex min-w-0 flex-col">
+      <div className={`
+        flex flex-col items-start gap-2
+        sm:flex-row sm:items-center
+      `}
+      >
+        <div className="flex gap-2">
+          <span className="shrink-0">{release.tag_name}</span>
+          <VersionBadge version={release.tag_name} />
+        </div>
         <span className="text-sm text-muted-foreground">
           (
           {new Date(release.published_at).toLocaleDateString('zh-TW')}
