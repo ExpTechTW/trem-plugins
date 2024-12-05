@@ -235,26 +235,6 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
       `}
       >
         <div className={`
-          mb-3
-          sm:mb-4
-        `}
-        >
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className={`
-                inline-flex items-center text-sm text-gray-600
-                dark:text-gray-400 dark:hover:text-gray-200
-                hover:text-gray-900
-              `}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              返回首頁
-            </Link>
-          </div>
-        </div>
-
-        <div className={`
           grid gap-3
           lg:grid-cols-3
           sm:gap-4

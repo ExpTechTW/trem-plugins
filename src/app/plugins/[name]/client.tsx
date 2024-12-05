@@ -120,15 +120,6 @@ export default function PluginPageClient({
       <div className="flex flex-col gap-4">
         <UnsafePluginWarning plugin={plugin} />
         <main className="container mx-auto min-h-svh flex-1 px-4 py-8">
-          <div className="mb-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/store" className="flex items-center gap-2">
-                <ArrowLeft size={16} />
-                <span>返回商店</span>
-              </Link>
-            </Button>
-          </div>
-
           <div className={`
             grid grid-cols-1 gap-4
             lg:grid-cols-4

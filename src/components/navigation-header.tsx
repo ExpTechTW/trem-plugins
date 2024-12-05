@@ -25,13 +25,13 @@ const NavigationHeader = () => {
       href: '/',
       icon: <Home className="h-4 w-4" />,
       text: '首頁',
-      variant: (p) => p === '/' ? 'default' : 'ghost',
+      variant: (p) => p == '/' ? 'default' : 'ghost',
     },
     {
       href: '/store',
       icon: <Store className="h-4 w-4" />,
       text: '擴充',
-      variant: (p) => (p.startsWith('/store') || p.startsWith('/plugins')) ? 'default' : 'ghost',
+      variant: (p) => p == '/store' ? 'default' : 'ghost',
     },
     {
       href: 'https://exptechtw.github.io/TREM-docs',
