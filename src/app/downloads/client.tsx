@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import AnimatedCounter from '@/lib/counter';
 import { Button } from '@/components/ui/button';
 import VersionBadge from '@/components/dialogs/version';
+import PackageSizeChart from '@/components/size_chart';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';
@@ -357,6 +358,14 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
                   </div>
                 ))}
               </div>
+            </div>
+            <div className={`
+              rounded-lg border bg-white p-3
+              dark:border-gray-700 dark:bg-black
+              sm:p-4
+            `}
+            >
+              <PackageSizeChart releases={releases} />
             </div>
           </div>
 
