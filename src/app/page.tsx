@@ -2,6 +2,7 @@
 
 import { AlertCircle, Loader2Icon, Moon, Sun } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import AppFooter from '@/components/footer';
@@ -160,7 +161,10 @@ export default function Home() {
         )}
 
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
+            <Link href="https://exptechtw.github.io/TREM-docs">技術文件</Link>
+          </div>
           <div className="flex gap-4">
             <Button
               variant="outline"
