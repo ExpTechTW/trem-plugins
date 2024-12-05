@@ -9,13 +9,6 @@ import '@fontsource/noto-sans-tc/700.css';
 import './globals.css';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'TREM 擴充',
-  description: 'TREM 擴充套件一覽',
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +26,8 @@ export default function RootLayout({
 
   return (
     <html lang="zh-Hant">
+      <title>TREM 擴充</title>
+      <meta name="description" content="TREM 擴充套件一覽" />
       <body className="flex flex-col">
         <TooltipProvider>
           {children}
