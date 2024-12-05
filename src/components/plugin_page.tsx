@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plugin } from '@/modal/plugin';
 
 import VersionList from './version_list';
+import ReadmeTab from './readme';
 
 const PluginPageTab = ({ plugin, allPlugins }: { plugin: Plugin; allPlugins: Plugin[] }) => {
   const router = useRouter();
@@ -35,10 +36,7 @@ const PluginPageTab = ({ plugin, allPlugins }: { plugin: Plugin; allPlugins: Plu
 
         <TabsContent value="readme">
           <Card>
-            <CardContent className="w-full p-6">
-              <h3 className="mb-2 text-lg font-medium">{plugin.name}</h3>
-              <p className="text-muted-foreground">{plugin.description?.zh_tw}</p>
-            </CardContent>
+            <ReadmeTab plugin={plugin} />
           </Card>
         </TabsContent>
 
