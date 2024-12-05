@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { z } from 'zod';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -9,7 +10,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import Plugin from '@/modal/plugin';
+import PluginSchema from '@/modal/plugin';
+
+type Plugin = z.infer<typeof PluginSchema>;
 
 interface DayActivity {
   date: string;
@@ -17,13 +20,21 @@ interface DayActivity {
   color: string;
 }
 
+function getLocalDateString(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export default function ActivityHeatmap({ plugin }: { plugin: Plugin }) {
   const activityData = useMemo(() => {
     const releases = plugin.repository.releases.releases;
 
     const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(endDate.getMonth() - 1);
+
+    const startDate = new Date(endDate);
+    startDate.setMonth(startDate.getMonth() - 1);
+    startDate.setHours(0, 0, 0, 0);
 
     const activityMap = new Map<string, number>();
 
@@ -31,18 +42,23 @@ export default function ActivityHeatmap({ plugin }: { plugin: Plugin }) {
     const data: DayActivity[] = [];
 
     while (current <= endDate) {
-      const dateStr = current.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(current);
       activityMap.set(dateStr, 0);
       current.setDate(current.getDate() + 1);
     }
 
-    releases.forEach((release) => {
-      const date = new Date(release.published_at);
-      if (date >= startDate && date <= endDate) {
-        const dateStr = date.toISOString().split('T')[0];
-        activityMap.set(dateStr, (activityMap.get(dateStr) || 0) + 1);
-      }
-    });
+    if (Array.isArray(releases)) {
+      releases.forEach((release) => {
+        const publishDate = release.published_at;
+        if (typeof publishDate === 'string') {
+          const date = new Date(publishDate);
+          if (date >= startDate && date <= endDate) {
+            const dateStr = getLocalDateString(date);
+            activityMap.set(dateStr, (activityMap.get(dateStr) || 0) + 1);
+          }
+        }
+      });
+    }
 
     const maxActivity = Math.max(...Array.from(activityMap.values()));
     activityMap.forEach((count, date) => {
@@ -61,8 +77,8 @@ export default function ActivityHeatmap({ plugin }: { plugin: Plugin }) {
   }, [plugin]);
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+    const [, month, day] = dateStr.split('-');
+    return `${parseInt(month)}/${parseInt(day)}`;
   };
 
   return (
