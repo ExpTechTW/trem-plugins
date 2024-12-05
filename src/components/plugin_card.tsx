@@ -19,7 +19,7 @@ export default function PluginCard({ plugin }: Props) {
   const isVerified = plugin.author.includes('ExpTechTW');
 
   const handleCardClick = () => {
-    router.push(`/plugins/${plugin.name}`);
+    router.push(`/plugins?name=${plugin.name}`);
   };
 
   return (

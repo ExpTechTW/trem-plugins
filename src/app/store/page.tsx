@@ -35,7 +35,7 @@ export default function StorePage() {
 
         if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
           const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
-          setPlugins(parsedPlugins);
+          setPlugins(Array.isArray(parsedPlugins) ? parsedPlugins : []);
           setUpdateTime(now);
           setIsLoading(false);
           return;
@@ -47,7 +47,7 @@ export default function StorePage() {
 
         const pluginsData = (await response.json()) as Plugin[];
 
-        if (pluginsData.length === 0) {
+        if (!Array.isArray(pluginsData) || pluginsData.length === 0) {
           throw new Error('無法載入擴充數據');
         }
 
@@ -70,9 +70,15 @@ export default function StorePage() {
         else {
           const cachedData = localStorage.getItem('tremPlugins');
           if (cachedData) {
-            const parsed = JSON.parse(cachedData) as Plugin[];
-            setPlugins(parsed);
-            setError('使用緩存資料（可能不是最新）');
+            try {
+              const parsed = JSON.parse(cachedData) as Plugin[];
+              setPlugins(Array.isArray(parsed) ? parsed : []);
+              setError('使用緩存資料（可能不是最新）');
+            }
+            catch {
+              setPlugins([]);
+              setError('緩存資料損壞');
+            }
           }
           else {
             setError('無法載入擴充資料，請重新整理頁面');
@@ -89,11 +95,15 @@ export default function StorePage() {
   }, [fetchPlugins]);
 
   const stats = {
-    totalPlugins: plugins.length,
-    totalDownloads: plugins.reduce((sum, plugin) => {
-      return sum + (plugin.repository?.releases?.total_downloads || 0);
-    }, 0),
-    totalAuthors: new Set(plugins.flatMap((p) => p.author)).size,
+    totalPlugins: Array.isArray(plugins) ? plugins.length : 0,
+    totalDownloads: Array.isArray(plugins)
+      ? plugins.reduce((sum, plugin) => {
+        return sum + (plugin.repository?.releases?.total_downloads || 0);
+      }, 0)
+      : 0,
+    totalAuthors: Array.isArray(plugins)
+      ? new Set(plugins.flatMap((p) => p.author)).size
+      : 0,
   };
 
   if (isLoading) {

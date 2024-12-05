@@ -4,7 +4,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 const basePath = isProduction ? '/trem-plugins' : '';
 
 const nextConfig: NextConfig = {
-  output: 'export',
   basePath: basePath,
   assetPrefix: basePath,
   images: {
@@ -16,6 +15,7 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  trailingSlash: isProduction,
 };
 
 export default nextConfig;

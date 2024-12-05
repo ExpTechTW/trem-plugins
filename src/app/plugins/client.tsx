@@ -37,6 +37,32 @@ import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import type { Plugin } from '@/modal/plugin';
 
+async function fetchPlugins(): Promise<Plugin[]> {
+  try {
+    const response = await fetch(
+      'https://raw.githack.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch plugins');
+    }
+
+    const pluginsData = await response.json() as Plugin[];
+
+    if (pluginsData.length === 0) {
+      throw new Error('無法載入擴充數據');
+    }
+
+    return pluginsData;
+  }
+  catch (error) {
+    if (error instanceof Error) {
+      console.error('Error fetching plugins:', error.message);
+    }
+    return [];
+  }
+}
+
 function getPluginData(plugins: Plugin[], name: string): Plugin | null {
   return plugins.find((plugin) => plugin.name === name) || null;
 }
@@ -55,42 +81,61 @@ function PluginContent({ plugin, plugins }: { plugin: Plugin; plugins: Plugin[] 
   );
 }
 
-export default function PluginPageClient({
-  initialPlugins,
-  name,
-}: {
-  initialPlugins: Plugin[];
-  name: string;
-}) {
+export default function PluginPageClient() {
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name');
+
+  if (!name) {
+    return <div>請提供插件名稱</div>;
+  }
+
   const [mounted, setMounted] = useState(false);
-  const [plugins, setPlugins] = useState<Plugin[]>(initialPlugins);
+  const [plugins, setPlugins] = useState<Plugin[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const cachedData = window?.localStorage?.getItem('tremPlugins');
-      if (cachedData) {
-        const parsed = JSON.parse(cachedData) as CachedPlugins;
-        if (Date.now() - parsed.timestamp < 300000) {
-          setPlugins(parsed.plugins);
+    async function loadPlugins() {
+      try {
+        const cachedPlugins = localStorage.getItem('tremPlugins');
+        const lastFetch = localStorage.getItem('lastPluginsFetch');
+        const now = Date.now();
+
+        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
+          const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
+          setPlugins(Array.isArray(parsedPlugins) ? parsedPlugins : []);
+          setLoading(false);
           return;
         }
-      }
 
-      if (initialPlugins.length > 0) {
-        window?.localStorage?.setItem('tremPlugins', JSON.stringify(initialPlugins));
-        localStorage.setItem('lastPluginsFetch', Date.now().toString());
+        const response = await fetch(
+          'https://raw.githack.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
+        );
+
+        const pluginsData = (await response.json()) as Plugin[];
+
+        if (!Array.isArray(pluginsData) || pluginsData.length === 0) {
+          throw new Error('無法載入擴充數據');
+        }
+
+        localStorage.setItem('tremPlugins', JSON.stringify(pluginsData));
+        localStorage.setItem('lastPluginsFetch', now.toString());
+      }
+      catch (error) {
+        console.error('Failed to load plugins:', error);
+      }
+      finally {
+        setLoading(false);
       }
     }
-    catch (error) {
-      console.error('Failed to access localStorage:', error instanceof Error ? error.message : 'Unknown error');
-    }
-  }, [initialPlugins]);
+
+    void loadPlugins();
+  }, []);
 
   const plugin = getPluginData(plugins, name);
   const isVerified = plugin?.author.includes('ExpTechTW');
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return (
       <div className="flex min-h-screen flex-col">
         <NavigationHeader />
@@ -112,7 +157,6 @@ export default function PluginPageClient({
           <h1 className="mb-4 text-2xl font-bold">找不到擴充</h1>
           <p>
             找不到名為
-            {' '}
             {name}
             {' '}
             的擴充。
