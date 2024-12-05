@@ -112,12 +112,14 @@ export default function PluginPageClient() {
   }
 
   if (!name) {
-    return router.push(`/store`);
+    router.push(`/store`);
+    return <LoadingState />;
   }
 
   const plugin = plugins.find((p) => p.name === name);
   if (!plugin) {
-    return router.push(`/store`);
+    router.push(`/store`);
+    return <LoadingState />;
   }
 
   const isVerified = plugin.author.includes('ExpTechTW');
