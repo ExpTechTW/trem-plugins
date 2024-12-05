@@ -82,7 +82,11 @@ const RecommendedVersion = ({ release, plugin }: { release: Release; plugin: Plu
 
 const VersionList = ({ plugin }: { plugin: Plugin }) => {
   const releases = plugin.repository.releases.releases;
-  if (!releases.length) return null;
+  if (!releases.length) return (
+    <div className="w-full py-8 text-center text-muted-foreground">
+      目前沒有發布的版本
+    </div>
+  );
 
   const getRecommendedVersion = () => {
     const stableVersion = releases.find((r) =>
@@ -117,7 +121,6 @@ const VersionList = ({ plugin }: { plugin: Plugin }) => {
         `}
         >
           <RecommendedVersion release={recommendedVersion} plugin={plugin} />
-
           {otherVersions.map((release) => (
             <div
               key={release.tag_name}

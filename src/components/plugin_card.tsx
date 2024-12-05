@@ -1,10 +1,8 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { CheckCircle, ChevronDown, Clock, Download, ShieldCheck, Tag } from 'lucide-react';
+import { CheckCircle, Clock, Download, ShieldCheck, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import GithubPeople from './github_people';

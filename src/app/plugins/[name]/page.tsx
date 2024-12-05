@@ -5,10 +5,8 @@ import Link from 'next/link';
 import AppFooter from '@/components/footer';
 import GithubPeople from '@/components/github_people';
 import { InstallButtons } from '@/components/install';
-import ReadmeTab from '@/components/readme';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 import {
@@ -20,7 +18,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import UnsafePluginWarning from '@/components/dialogs/warn';
-import VersionList from '@/components/version_list';
+import PluginPageTab from '@/components/plugin_page';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -71,8 +69,7 @@ export async function generateStaticParams() {
   }));
 }
 
-async function getPluginData(name: string): Promise<Plugin | null> {
-  const plugins = await fetchPlugins();
+function getPluginData(plugins: Plugin[], name: string): Plugin | null {
   return plugins.find((plugin) => plugin.name === name) || null;
 }
 
@@ -82,7 +79,8 @@ export default async function PluginPage({
   params: Promise<{ name: string }>;
 }) {
   const { name } = await params;
-  const plugin = await getPluginData(name);
+  const plugins = await fetchPlugins();
+  const plugin = getPluginData(plugins, name);
   const isVerified = plugin?.author.includes('ExpTechTW');
 
   if (!plugin) {
@@ -345,63 +343,7 @@ export default async function PluginPage({
             </Card>
           </div>
 
-          <div className="lg:col-span-3">
-            <Tabs defaultValue="readme" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="readme">說明</TabsTrigger>
-                <TabsTrigger value="versions">版本</TabsTrigger>
-                <TabsTrigger value="dependencies">相依性</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="readme">
-                <Card>
-                  <ReadmeTab plugin={plugin} />
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="versions">
-                <Card>
-                  <CardContent className={`
-                    p-4
-                    sm:p-6
-                  `}
-                  >
-                    <div className="space-y-6">
-                      <VersionList plugin={plugin} />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="dependencies">
-                <Card>
-                  <CardContent className={`
-                    p-4
-                    sm:p-6
-                  `}
-                  >
-                    <div className={`
-                      grid grid-cols-1 gap-4
-                      sm:grid-cols-2
-                    `}
-                    >
-                      {Object.entries(plugin.dependencies).map(([key, value]) => (
-                        <div key={key} className="rounded-lg border p-4">
-                          <div className="break-words font-medium">{key}</div>
-                          <div className={`
-                            break-words text-sm text-muted-foreground
-                          `}
-                          >
-                            {value}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+          <PluginPageTab plugin={plugin} allPlugins={plugins} />
         </div>
       </main>
 
