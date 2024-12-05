@@ -16,8 +16,8 @@ type SortField = 'name' | 'updated' | 'downloads';
 type SortDirection = 'asc' | 'desc';
 
 export default function PluginList({ plugins: initialPlugins }: { plugins: Plugin[] }) {
-  const [sortField, setSortField] = useState<SortField>('downloads');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<SortField>('updated');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPlugins = initialPlugins.filter((plugin) => {
@@ -96,12 +96,6 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
               <SelectValue placeholder="排序" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">
-                <div className="flex items-center gap-2">
-                  <Text size={18} />
-                  <span>名稱</span>
-                </div>
-              </SelectItem>
               <SelectItem value="updated">
                 <div className="flex items-center gap-2">
                   <Clock size={18} />
@@ -112,6 +106,12 @@ export default function PluginList({ plugins: initialPlugins }: { plugins: Plugi
                 <div className="flex items-center gap-2">
                   <Download size={18} />
                   <span>下載次數</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="name">
+                <div className="flex items-center gap-2">
+                  <Text size={18} />
+                  <span>名稱</span>
                 </div>
               </SelectItem>
             </SelectContent>
