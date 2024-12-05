@@ -13,7 +13,7 @@ import {
   Tag,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import ActivityHeatmap from '@/components/activity_chart';
@@ -46,6 +46,15 @@ interface CachedPlugins {
   timestamp: number;
 }
 
+function PluginContent({ plugin, plugins }: { plugin: Plugin; plugins: Plugin[] }) {
+  const searchParams = useSearchParams();
+  const version = searchParams.get('version') || '';
+
+  return (
+    <PluginPageTab plugin={plugin} allPlugins={plugins} version={version} />
+  );
+}
+
 export default function PluginPageClient({
   initialPlugins,
   name,
@@ -55,9 +64,6 @@ export default function PluginPageClient({
 }) {
   const [mounted, setMounted] = useState(false);
   const [plugins, setPlugins] = useState<Plugin[]>(initialPlugins);
-
-  const searchParams = useSearchParams();
-  const version = searchParams.get('version') || '';
 
   useEffect(() => {
     setMounted(true);
@@ -357,7 +363,9 @@ export default function PluginPageClient({
               <ActivityHeatmap plugin={plugin} />
             </div>
 
-            <PluginPageTab plugin={plugin} allPlugins={plugins} version={version} />
+            <Suspense fallback={<div>載入中...</div>}>
+              <PluginContent plugin={plugin} plugins={plugins} />
+            </Suspense>
           </div>
         </main>
 
