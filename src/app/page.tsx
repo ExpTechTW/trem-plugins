@@ -1,206 +1,84 @@
 'use client';
 
-import { AlertCircle, Loader2Icon, Moon, Sun } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { Download } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import AppFooter from '@/components/footer';
-import PluginList from '@/components/plugin_list';
-import TrafficChart from '@/components/traffic_chart';
-import { formatTimeString } from '@/lib/utils';
-import StatsSection from '@/components/status';
 
-import type { Plugin } from '@/modal/plugin';
+const NavigationHeader = dynamic(() => import('@/components/navigation-header'), {
+  ssr: false,
+});
 
-export default function Home() {
-  const [plugins, setPlugins] = useState<Plugin[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
-    }
-    return false;
-  });
-  const [updateTime, setUpdateTime] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return Number(localStorage.getItem('lastPluginsFetch') ?? 0);
-    }
-    return Date.now();
-  });
-  const [error, setError] = useState<string | null>(null);
-  const maxRetries = 3;
-
-  const fetchPlugins = useCallback(
-    async (retry = 0) => {
-      try {
-        setError(null);
-        const cachedPlugins = localStorage.getItem('tremPlugins');
-        const lastFetch = localStorage.getItem('lastPluginsFetch');
-        const now = Date.now();
-
-        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
-          const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
-          setPlugins(parsedPlugins);
-          setUpdateTime(now);
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await fetch(
-          'https://raw.githack.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
-        );
-
-        const pluginsData = (await response.json()) as Plugin[];
-
-        if (pluginsData.length === 0) {
-          throw new Error('無法載入擴充數據');
-        }
-
-        localStorage.setItem('tremPlugins', JSON.stringify(pluginsData));
-        localStorage.setItem('lastPluginsFetch', now.toString());
-
-        setPlugins(pluginsData);
-        setUpdateTime(now);
-        setIsLoading(false);
-      }
-      catch (error) {
-        console.error('Error:', error);
-
-        if (retry < maxRetries) {
-          setError(`載入失敗 (${retry + 1}/${maxRetries})，重試中...`);
-          setTimeout(() => {
-            void fetchPlugins(retry + 1);
-          }, 1000 * (retry + 1));
-        }
-        else {
-          const cachedData = localStorage.getItem('tremPlugins');
-          if (cachedData) {
-            const parsed = JSON.parse(cachedData) as Plugin[];
-            setPlugins(parsed);
-            setError('使用緩存資料（可能不是最新）');
-          }
-          else {
-            setError('無法載入擴充資料，請重新整理頁面');
-          }
-        }
-        setIsLoading(false);
-      }
-    },
-    [maxRetries],
-  );
-
-  const handleDarkModeToggle = () => {
-    setIsDarkMode((prev) => {
-      const newValue = !prev;
-      localStorage.setItem('darkMode', String(newValue));
-      document.documentElement.classList.toggle('dark', newValue);
-      return newValue;
-    });
-  };
-
-  useEffect(() => {
-    void fetchPlugins();
-  }, [fetchPlugins]);
-
-  const stats = {
-    totalPlugins: plugins.length,
-    totalDownloads: plugins.reduce((sum, plugin) => {
-      return sum + (plugin.repository?.releases?.total_downloads || 0);
-    }, 0),
-    totalAuthors: new Set(plugins.flatMap((p) => p.author)).size,
-  };
-
-  if (isLoading) {
-    return (
-      <div className="grid h-svh w-svw items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2Icon className="animate-spin" />
-          <div className="text-lg">載入中...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="grid h-svh w-svw items-center justify-center">
-        <div className="flex items-center gap-2">
-          <div>{error}</div>
-          <Button
-            onClick={() => void fetchPlugins()}
-            variant="default"
-          >
-            重試
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+const DownloadSection = dynamic(() => Promise.resolve(() => {
   return (
-    <div className="flex flex-col gap-4">
-      <main className="container mx-auto min-h-svh flex-1 px-4 py-8">
-        {error && (
-          <div className={`
-            mb-4 border-l-4 border-yellow-500 bg-yellow-100 p-4
-            dark:bg-yellow-900
-          `}
-          >
-            <div className="flex items-center">
-              <AlertCircle className="mr-2 h-5 w-5 text-yellow-500" />
-              <p className={`
-                text-yellow-700
-                dark:text-yellow-200
-              `}
-              >
-                {error}
-              </p>
-            </div>
-          </div>
-        )}
+    <div className="rounded-md border p-4">
+      <h3 className="mb-2 font-semibold">下載安裝</h3>
+      <p className="mb-2">立即下載 TREM 開始使用完整功能</p>
+      <Button asChild>
+        <a href="/downloads">
+          <Download className="mr-2 h-4 w-4" />
+          前往下載頁面
+        </a>
+      </Button>
+    </div>
+  );
+}), {
+  ssr: false,
+});
 
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold">TREM 擴充商店</h1>
-            <Link href="https://exptechtw.github.io/TREM-docs">技術文件</Link>
-          </div>
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDarkModeToggle}
+export default function HomePage() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <NavigationHeader />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="mb-6 text-4xl font-bold">歡迎使用 TREM</h1>
+        <div className="grid gap-6">
+          <section className="rounded-lg border p-6">
+            <h2 className="mb-4 text-2xl font-semibold">關於 TREM</h2>
+            <p className="mb-4 text-lg">
+              TREM 是一個強大的地震監測和警報系統，為台灣地區提供即時地震資訊和預警服務。
+            </p>
+            <div className={`
+              grid gap-4
+              md:grid-cols-3
+            `}
             >
-              {isDarkMode
-                ? <Sun className="h-5 w-5" />
-                : (
-                    <Moon className="h-5 w-5" />
-                  )}
-            </Button>
-          </div>
+              <div className="rounded-md border p-4">
+                <h3 className="mb-2 font-semibold">即時監測</h3>
+                <p>24/7 全天候監測台灣地區地震活動</p>
+              </div>
+              <div className="rounded-md border p-4">
+                <h3 className="mb-2 font-semibold">快速通知</h3>
+                <p>第一時間發送地震警報和相關資訊</p>
+              </div>
+              <div className="rounded-md border p-4">
+                <h3 className="mb-2 font-semibold">擴充功能</h3>
+                <p>豐富的插件生態系統，打造個人化體驗</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-lg border p-6">
+            <h2 className="mb-4 text-2xl font-semibold">開始使用</h2>
+            <div className={`
+              grid gap-4
+              md:grid-cols-2
+            `}
+            >
+              <DownloadSection />
+              <div className="rounded-md border p-4">
+                <h3 className="mb-2 font-semibold">瀏覽擴充功能</h3>
+                <p className="mb-2">探索豐富的擴充功能，提升使用體驗</p>
+                <Link href="/store">
+                  <Button variant="outline">前往擴充商店</Button>
+                </Link>
+              </div>
+            </div>
+          </section>
         </div>
-
-        <PluginList plugins={plugins} />
-
-        <StatsSection stats={stats} />
-
-        <div className="pt-8">
-          <TrafficChart />
-        </div>
-      </main>
-
-      <AppFooter>
-        <div className={`
-          flex flex-col justify-between gap-2
-          md:flex-row
-        `}
-        >
-          <div>&copy; 2024 ExpTech Ltd.</div>
-          所有數據更新於
-          {' '}
-          {formatTimeString(updateTime)}
-        </div>
-      </AppFooter>
+      </div>
     </div>
   );
 }

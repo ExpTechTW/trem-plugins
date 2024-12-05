@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Moon, Store, Sun } from 'lucide-react';
+import { Book, Home, Moon, Store, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -51,7 +51,16 @@ const NavigationHeader = () => {
               className="flex items-center gap-2"
             >
               <Store className="h-4 w-4" />
-              擴充商店
+              擴充
+            </Button>
+          </Link>
+          <Link href="https://exptechtw.github.io/TREM-docs">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2"
+            >
+              <Book className="h-4 w-4" />
+              文件
             </Button>
           </Link>
         </div>
