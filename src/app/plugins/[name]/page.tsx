@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import UnsafePluginWarning from '@/components/dialogs/mixin';
+import UnsafePluginWarning from '@/components/dialogs/warn';
 import VersionList from '@/components/version_list';
 
 import type { Plugin } from '@/modal/plugin';
@@ -101,7 +101,7 @@ export default async function PluginPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <UnsafePluginWarning pluginName={plugin.name} />
+      <UnsafePluginWarning plugin={plugin} />
       <main className="container mx-auto min-h-svh flex-1 px-4 py-8">
         <div className="mb-4">
           <Button variant="ghost" size="sm" asChild>
@@ -163,7 +163,7 @@ export default async function PluginPage({
                               <DialogTitle className="text-xl">官方認證</DialogTitle>
                             </div>
                             <DialogDescription className="mt-4 space-y-4">
-                              <p>此認證標章表示擴充已通過官方認證，需符合以下條件。</p>
+                              <p>此認證標章表示擴充已通過官方認證，需符合以下條件：</p>
 
                               <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm">
@@ -181,6 +181,7 @@ export default async function PluginPage({
                                   <span>開發者保持良好的互動記錄</span>
                                 </div>
                               </div>
+                              <p>建議使用經過官方認證的擴充功能以確保安全性。</p>
                             </DialogDescription>
                           </DialogHeader>
                         </DialogContent>

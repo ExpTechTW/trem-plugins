@@ -9,14 +9,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { formatNumber } from '@/lib/utils';
 import VersionBadge from '@/components/dialogs/version';
 
-import type { Plugin } from '@/modal/plugin';
-
-interface Release {
-  tag_name: string;
-  name: string;
-  downloads: number;
-  published_at: string;
-}
+import type { Plugin, Release } from '@/modal/plugin';
 
 const VersionItem = ({ release, plugin }: { release: Release; plugin: Plugin }) => (
   <div className="grid grid-cols-[1fr_auto] items-start gap-4">

@@ -116,7 +116,7 @@ export default function PluginCard({ plugin }: Props) {
               <span>{formatNumber(plugin.repository.releases.total_downloads)}</span>
             </div>
           </div>
-          {plugin.repository.releases.releases.length > 0
+          {/* {plugin.repository.releases.releases.length > 0
           && (
             <div className="flex" onClick={(e) => e.stopPropagation()}>
               <Button
@@ -155,7 +155,7 @@ export default function PluginCard({ plugin }: Props) {
                 </DropdownMenu>
               )}
             </div>
-          )}
+          )} */}
         </div>
       </CardFooter>
     </Card>

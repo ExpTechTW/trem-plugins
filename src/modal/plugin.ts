@@ -1,11 +1,11 @@
-interface Release {
+export interface Release {
   tag_name: string;
   name: string;
   downloads: number;
   published_at: string;
 }
 
-interface Repository {
+export interface Repository {
   full_name: string;
   releases: {
     total_count: number;
