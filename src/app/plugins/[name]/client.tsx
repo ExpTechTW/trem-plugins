@@ -2,7 +2,6 @@
 
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import {
-  ArrowLeft,
   CheckCircle,
   Clock,
   Download,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import ActivityHeatmap from '@/components/activity_chart';
 import AppFooter from '@/components/footer';
@@ -26,7 +26,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import GithubPeople from '@/components/github_people';
 import { InstallButtons } from '@/components/install';
@@ -56,6 +55,9 @@ export default function PluginPageClient({
 }) {
   const [mounted, setMounted] = useState(false);
   const [plugins, setPlugins] = useState<Plugin[]>(initialPlugins);
+
+  const searchParams = useSearchParams();
+  const version = searchParams.get('version') || '';
 
   useEffect(() => {
     setMounted(true);
@@ -355,7 +357,7 @@ export default function PluginPageClient({
               <ActivityHeatmap plugin={plugin} />
             </div>
 
-            <PluginPageTab plugin={plugin} allPlugins={plugins} />
+            <PluginPageTab plugin={plugin} allPlugins={plugins} version={version} />
           </div>
         </main>
 

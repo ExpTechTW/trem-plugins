@@ -10,7 +10,7 @@ import { Plugin } from '@/modal/plugin';
 import VersionList from './version_list';
 import ReadmeTab from './readme';
 
-const PluginPageTab = ({ plugin, allPlugins }: { plugin: Plugin; allPlugins: Plugin[] }) => {
+const PluginPageTab = ({ plugin, allPlugins, version }: { plugin: Plugin; allPlugins: Plugin[];version: string }) => {
   const router = useRouter();
 
   const dependentPlugins = allPlugins.filter((p) =>
@@ -48,7 +48,7 @@ const PluginPageTab = ({ plugin, allPlugins }: { plugin: Plugin; allPlugins: Plu
             `}
             >
               <div className="space-y-6">
-                <VersionList plugin={plugin} />
+                <VersionList plugin={plugin} version={version} />
               </div>
             </CardContent>
           </Card>

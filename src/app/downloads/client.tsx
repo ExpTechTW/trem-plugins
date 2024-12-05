@@ -1,7 +1,6 @@
 'use client';
 
-import { ArrowLeft, Download, Loader2Icon } from 'lucide-react';
-import Link from 'next/link';
+import { Download, Loader2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { redirect, usePathname, useSearchParams } from 'next/navigation';
 
@@ -117,12 +116,9 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
     const detected = getSystemInfo();
     setSystemInfo(detected);
 
-    console.log(initialVersion);
-
     const getFirstStableVersion = (releases: GithubRelease[]): string => {
-      if (initialVersion && releases.some((release) => release.tag_name === initialVersion)) {
-        return initialVersion;
-      }
+      const targetVersion = releases.find((r) => r.tag_name.includes(initialVersion));
+      if (targetVersion) return targetVersion.tag_name;
 
       const stableRelease = releases.find((release) =>
         !release.tag_name.includes('-rc') && !release.tag_name.includes('-pre'),

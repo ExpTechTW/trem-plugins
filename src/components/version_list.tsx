@@ -46,47 +46,99 @@ const VersionItem = ({ release, plugin }: { release: Release; plugin: Plugin }) 
   </div>
 );
 
-const RecommendedVersion = ({ release, plugin }: { release: Release; plugin: Plugin }) => (
-  <div className={`
-    rounded-lg border-2 border-green-500
-    dark:border-green-700
-  `}
-  >
-    <div className={`
-      flex items-center gap-2 border-b border-green-500 bg-green-50 px-4 py-3
-      dark:border-green-700 dark:bg-green-900/20
-    `}
-    >
-      <div className={`
-        rounded-full bg-green-100 p-1.5
-        dark:bg-green-900/40
-      `}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 text-green-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+const RecommendedVersion = ({ release, plugin, version }: { release: Release; plugin: Plugin; version: string }) => (
+  version != ''
+    ? (
+        <div
+          className={`
+            rounded-lg border-2 border-blue-500
+            dark:border-blue-700
+          `}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <span className={`
-        font-medium text-green-600
-        dark:text-green-400
-      `}
-      >
-        推薦版本
-      </span>
-    </div>
-    <div className="p-4">
-      <VersionItem release={release} plugin={plugin} />
-    </div>
-  </div>
+          <div
+            className={`
+              flex items-center gap-2 border-b border-blue-500 bg-blue-50 px-4
+              py-3
+              dark:border-blue-700 dark:bg-blue-900/20
+            `}
+          >
+            <div
+              className={`
+                rounded-full bg-blue-100 p-1.5
+                dark:bg-blue-900/40
+              `}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span
+              className={`
+                font-medium text-blue-600
+                dark:text-blue-400
+              `}
+            >
+              指定版本
+            </span>
+          </div>
+          <div className="p-4">
+            <VersionItem release={release} plugin={plugin} />
+          </div>
+        </div>
+      )
+    : (
+        <div
+          className={`
+            rounded-lg border-2 border-green-500
+            dark:border-green-700
+          `}
+        >
+          <div
+            className={`
+              flex items-center gap-2 border-b border-green-500 bg-green-50 px-4
+              py-3
+              dark:border-green-700 dark:bg-green-900/20
+            `}
+          >
+            <div
+              className={`
+                rounded-full bg-green-100 p-1.5
+                dark:bg-green-900/40
+              `}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span
+              className={`
+                font-medium text-green-600
+                dark:text-green-400
+              `}
+            >
+              推薦版本
+            </span>
+          </div>
+          <div className="p-4">
+            <VersionItem release={release} plugin={plugin} />
+          </div>
+        </div>
+      )
 );
 
-const VersionList = ({ plugin }: { plugin: Plugin }) => {
+const VersionList = ({ plugin, version }: { plugin: Plugin;version: string }) => {
   const releases = plugin.repository.releases.releases;
   if (!releases.length) return (
     <div className="w-full py-8 text-center text-muted-foreground">
@@ -95,6 +147,11 @@ const VersionList = ({ plugin }: { plugin: Plugin }) => {
   );
 
   const getRecommendedVersion = () => {
+    const targetVersion = releases.find((r) => r.tag_name.includes(version));
+    if (targetVersion) return targetVersion;
+
+    version = '';
+
     const stableVersion = releases.find((r) =>
       !r.tag_name.toLowerCase().includes('-pre')
       && !r.tag_name.toLowerCase().includes('-rc')
@@ -126,7 +183,7 @@ const VersionList = ({ plugin }: { plugin: Plugin }) => {
           sm:p-6
         `}
         >
-          <RecommendedVersion release={recommendedVersion} plugin={plugin} />
+          <RecommendedVersion release={recommendedVersion} plugin={plugin} version={version} />
           {otherVersions.map((release) => (
             <div
               key={release.tag_name}
