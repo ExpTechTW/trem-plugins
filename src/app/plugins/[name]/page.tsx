@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import UnsafePluginWarning from '@/components/dialogs/warn';
 import PluginPageTab from '@/components/plugin_page';
+import ActivityHeatmap from '@/components/activity_chart';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -341,6 +342,7 @@ export default async function PluginPage({
                 </div>
               </CardContent>
             </Card>
+            <ActivityHeatmap plugin={plugin} />
           </div>
 
           <PluginPageTab plugin={plugin} allPlugins={plugins} />
