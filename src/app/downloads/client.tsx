@@ -118,7 +118,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
 
     const getFirstStableVersion = (releases: GithubRelease[]): string => {
       const targetVersion = releases.find((r) => r.tag_name.includes(initialVersion));
-      if (targetVersion) return targetVersion.tag_name;
+      if (initialVersion && targetVersion) return targetVersion.tag_name;
 
       const stableRelease = releases.find((release) =>
         !release.tag_name.includes('-rc') && !release.tag_name.includes('-pre'),
