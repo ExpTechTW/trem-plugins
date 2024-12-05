@@ -147,7 +147,7 @@ export default async function PluginPage({
                           </button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
+                          <DialogHeader className="text-left">
                             <div className="flex items-center gap-3">
                               <div className={`
                                 rounded-full bg-green-50 p-2
@@ -204,7 +204,7 @@ export default async function PluginPage({
                           </button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
+                          <DialogHeader className="text-left">
                             <div className="flex items-center gap-3">
                               <div className={`
                                 rounded-full bg-blue-50 p-2

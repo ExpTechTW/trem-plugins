@@ -24,7 +24,7 @@ const UnsafePluginWarning = ({ plugin }: { plugin: Plugin }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <div className="flex items-center gap-3">
             <div className={`
               rounded-full bg-orange-50 p-2
