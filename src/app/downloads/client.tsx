@@ -1,13 +1,13 @@
 'use client';
 
 import { Download, Loader2Icon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { redirect, usePathname, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import NavigationHeader from '@/components/navigation-header';
+import AnimatedCounter from '@/lib/counter';
 import { Button } from '@/components/ui/button';
 import VersionBadge from '@/components/dialogs/version';
-import AnimatedCounter from '@/lib/counter';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';
@@ -209,7 +209,6 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
         dark:bg-black
       `}
       >
-        <NavigationHeader />
         <div className="flex flex-1 items-center justify-center">
           <Loader2Icon className="animate-spin" />
           <div className="text-lg">載入中...</div>
@@ -224,7 +223,6 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
       dark:bg-black
     `}
     >
-      <NavigationHeader />
       <div className={`
         container mx-auto p-3
         sm:p-4
@@ -271,28 +269,15 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
                   </h1>
                   <VersionBadge version={selectedVersion} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`
-                    text-sm text-gray-600
-                    dark:text-gray-400
-                  `}
-                  >
-                    版本：
-                  </span>
-                  <select
-                    value={selectedVersion}
-                    onChange={(e) => handleVersionChange(e.target.value)}
-                    className={`
-                      rounded-md border bg-white px-2 py-1 text-sm
-                      dark:border-gray-700 dark:bg-gray-800
-                    `}
-                  >
-                    {releases.map((release) => (
-                      <option key={release.tag_name} value={release.tag_name}>
-                        {release.tag_name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="min-w-28">
+                  <Select value={selectedVersion} onValueChange={handleVersionChange}>
+                    <SelectTrigger>{selectedVersion}</SelectTrigger>
+                    <SelectContent>
+                      {...releases.map((release) => (
+                        <SelectItem key={release.tag_name} value={release.tag_name}>{release.tag_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
