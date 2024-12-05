@@ -1,18 +1,23 @@
+'use client';
+
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+
 import DownloadsPageClient from '@/app/downloads/client';
 
-import type { NextPage } from 'next';
+const DownloadsPageContent = () => {
+  const searchParams = useSearchParams();
+  const version = searchParams.get('version') || '';
 
-interface DownloadsPageProps {
-  params?: { version?: string };
-}
+  return <DownloadsPageClient initialVersion={version} />;
+};
 
-const DownloadsPage: NextPage<DownloadsPageProps> = ({ params }) => {
-  const { version } = params || {};
-  return <DownloadsPageClient initialVersion={version || ''} />;
+const DownloadsPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DownloadsPageContent />
+    </Suspense>
+  );
 };
 
 export default DownloadsPage;
-
-export function generateStaticParams(): DownloadsPageProps[] {
-  return [{ params: { version: undefined } }];
-}
