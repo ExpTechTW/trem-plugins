@@ -1,28 +1,20 @@
-export interface Release {
-  tag_name: string;
-  name: string;
-  downloads: number;
-  published_at: string;
-}
+import { z } from 'zod';
 
-export interface Repository {
-  full_name: string;
-  releases: {
-    total_count: number;
-    total_downloads: number;
-    releases: Release[];
-  };
-}
+import Repository from './repository';
 
-export interface Plugin {
-  name: string;
-  version: string;
-  description: {
-    zh_tw: string;
-  };
-  author: string[];
-  dependencies: Record<string, string>;
-  link: string;
-  repository: Repository;
-  updated_at: string;
-}
+const Plugin = z.object({
+  name: z.string(),
+  version: z.string(),
+  description: z.object({
+    zh_tw: z.string(),
+  }),
+  author: z.array(z.string()),
+  dependencies: z.record(z.string(), z.string()),
+  link: z.string(),
+  repository: Repository,
+  updated_at: z.string(),
+});
+
+type Plugin = z.infer<typeof Plugin>;
+
+export default Plugin;

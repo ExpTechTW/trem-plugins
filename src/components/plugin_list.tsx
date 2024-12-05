@@ -6,39 +6,32 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import PluginCard from '@/components/plugin_card';
+import { usePluginStore } from '@/stores/plugins';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Input } from './ui/input';
 
-import type { Plugin } from '@/modal/plugin';
-
 type SortField = 'name' | 'updated' | 'downloads';
 type SortDirection = 'asc' | 'desc';
 
-export default function PluginList({ plugins: initialPlugins }: { plugins: Plugin[] }) {
+export default function PluginList() {
+  const plugins = usePluginStore((state) => state.plugins);
+
   const [sortField, setSortField] = useState<SortField>('updated');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredPlugins = initialPlugins.filter((plugin) => {
+  const filteredPlugins = plugins.filter((plugin) => {
     if (!plugin) return false;
 
     const searchFields: string[] = [];
 
-    if (typeof plugin.name === 'string') {
-      searchFields.push(plugin.name.toLowerCase());
-    }
+    searchFields.push(plugin.name.toLowerCase());
+    searchFields.push(plugin.description.zh_tw.toLowerCase());
 
-    if (plugin.description?.zh_tw && typeof plugin.description.zh_tw === 'string') {
-      searchFields.push(plugin.description.zh_tw.toLowerCase());
-    }
-
-    if (Array.isArray(plugin.author)) {
-      searchFields.push(...plugin.author
-        .filter((author): author is string => typeof author === 'string')
-        .map((author) => author.toLowerCase()),
-      );
-    }
+    searchFields.push(
+      ...plugin.author.map((author) => author.toLowerCase()),
+    );
 
     const searchTerms = searchTerm.toLowerCase().split(' ').filter(Boolean);
 

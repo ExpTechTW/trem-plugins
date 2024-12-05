@@ -2,8 +2,9 @@
 
 import React from 'react';
 
-import { formatNumber } from '@/lib/utils';
 import AnimatedCounter from '@/lib/counter';
+import { formatNumber } from '@/lib/utils';
+import { usePluginStore } from '@/stores/plugins';
 
 export interface StatsProps {
   stats: {
@@ -13,7 +14,9 @@ export interface StatsProps {
   };
 }
 
-const StatsSection: React.FC<StatsProps> = ({ stats }) => {
+export default function StatsSection() {
+  const pluginStore = usePluginStore();
+
   return (
     <div className={`
       grid grid-cols-1 gap-4 pt-8
@@ -21,22 +24,20 @@ const StatsSection: React.FC<StatsProps> = ({ stats }) => {
     `}
     >
       <AnimatedCounter
-        end={stats.totalPlugins}
+        end={pluginStore.plugins.length}
         title="擴充總數"
         formatter={(value: number) => value.toString()}
       />
       <AnimatedCounter
-        end={stats.totalDownloads}
+        end={pluginStore.getTotalDownloads()}
         title="總下載量"
         formatter={formatNumber}
       />
       <AnimatedCounter
-        end={stats.totalAuthors}
+        end={pluginStore.getTotalAuthors()}
         title="開發人數"
         formatter={(value: number) => value.toString()}
       />
     </div>
   );
-};
-
-export default StatsSection;
+}
