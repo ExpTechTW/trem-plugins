@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 import NavigationHeader from '@/components/navigation-header';
 import { Button } from '@/components/ui/button';
+import VersionBadge from '@/components/dialogs/version';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';
@@ -22,11 +23,23 @@ interface GithubAsset {
 interface GithubRelease {
   tag_name: string;
   assets: GithubAsset[];
+  published_at: string;
 }
+
+const CACHE_DURATION = 1000 * 60 * 60;
+const MAX_RELEASES = 5;
 
 const formatFileSize = (bytes: number): string => {
   const mb = bytes / (1024 * 1024);
   return `${mb.toFixed(1)} MB`;
+};
+
+const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 };
 
 const getSystemInfo = (): SystemInfo => {
@@ -40,23 +53,14 @@ const getSystemInfo = (): SystemInfo => {
   let os: SystemInfo['os'] = 'unknown';
   let arch: SystemInfo['arch'] = 'unknown';
 
-  // macOS detection
   if (platform.includes('mac')) {
     os = 'mac';
-    // For Apple Silicon Macs
-    if (window.navigator.userAgent.includes('Mac') && window.navigator.userAgent.includes('Apple')) {
-      arch = 'arm64';
-    }
-    else {
-      arch = 'x64';
-    }
+    arch = window.navigator.userAgent.includes('Mac') && window.navigator.userAgent.includes('Apple') ? 'arm64' : 'x64';
   }
-  // Windows detection
   else if (platform.includes('win')) {
     os = 'windows';
     arch = userAgent.includes('x64') || userAgent.includes('amd64') ? 'x64' : 'i32';
   }
-  // Linux detection
   else if (platform.includes('linux')) {
     os = 'linux';
     arch = userAgent.includes('arm64') || userAgent.includes('aarch64') ? 'arm64' : 'x64';
@@ -67,26 +71,50 @@ const getSystemInfo = (): SystemInfo => {
 
 export default function DownloadsPage() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo>({ os: 'unknown', arch: 'unknown' });
-  const [releases, setReleases] = useState<GithubRelease | null>(null);
+  const [releases, setReleases] = useState<GithubRelease[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVersion, setSelectedVersion] = useState<string>('');
 
   useEffect(() => {
     const detected = getSystemInfo();
-    console.log('Detected System:', detected);
     setSystemInfo(detected);
+
+    const getFirstStableVersion = (releases: GithubRelease[]): string => {
+      const stableRelease = releases.find((release) =>
+        !release.tag_name.includes('-rc')
+        && !release.tag_name.includes('-pre'),
+      );
+      return stableRelease?.tag_name || releases[0]?.tag_name || '';
+    };
 
     const fetchReleases = async () => {
       try {
-        const response = await fetch(
-          'https://api.github.com/repos/ExpTechTW/TREM-Lite/releases/latest',
-        );
+        const cachedData = localStorage.getItem('tremReleases');
+        const lastFetch = localStorage.getItem('lastReleasesFetch');
+        const now = Date.now();
 
-        if (!response.ok) {
-          throw new Error('無法取得版本資訊');
+        if (cachedData && lastFetch && now - parseInt(lastFetch) < CACHE_DURATION) {
+          const parsed = JSON.parse(cachedData) as GithubRelease[];
+          setReleases(parsed);
+          setSelectedVersion(getFirstStableVersion(parsed));
+          setLoading(false);
+          return;
         }
 
-        const data = (await response.json()) as GithubRelease;
-        setReleases(data);
+        const response = await fetch(
+          'https://api.github.com/repos/ExpTechTW/TREM-Lite/releases',
+        );
+
+        if (!response.ok) throw new Error('無法取得版本資訊');
+
+        const data = (await response.json()) as GithubRelease[];
+        const recentReleases = data.slice(0, MAX_RELEASES);
+
+        localStorage.setItem('tremReleases', JSON.stringify(recentReleases));
+        localStorage.setItem('lastReleasesFetch', now.toString());
+
+        setReleases(recentReleases);
+        setSelectedVersion(getFirstStableVersion(recentReleases));
       }
       catch (err) {
         console.error('Failed to fetch releases:', err);
@@ -99,17 +127,15 @@ export default function DownloadsPage() {
     void fetchReleases();
   }, []);
 
-  const getDownloadLink = () => {
-    if (!releases || systemInfo.os === 'unknown') {
-      return null;
-    }
+  const getDownloadLink = (release: GithubRelease) => {
+    if (systemInfo.os === 'unknown') return null;
 
     let searchPattern = '';
     if (systemInfo.os === 'mac') {
       searchPattern = systemInfo.arch === 'arm64' ? 'arm64.dmg' : 'x64.dmg';
     }
 
-    const asset = releases.assets.find((asset) =>
+    const asset = release.assets.find((asset) =>
       asset.name.toLowerCase().includes(searchPattern),
     );
 
@@ -121,7 +147,8 @@ export default function DownloadsPage() {
       : null;
   };
 
-  const downloadLink = getDownloadLink();
+  const currentRelease = releases.find((r) => r.tag_name === selectedVersion);
+  const downloadLink = currentRelease ? getDownloadLink(currentRelease) : null;
 
   if (loading) {
     return (
@@ -135,10 +162,22 @@ export default function DownloadsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`
+      flex min-h-screen flex-col bg-gray-50
+      dark:bg-gray-900
+    `}
+    >
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
+      <div className={`
+        container mx-auto p-3
+        sm:p-4
+      `}
+      >
+        <div className={`
+          mb-3
+          sm:mb-4
+        `}
+        >
           <Link
             href="/"
             className={`
@@ -152,40 +191,99 @@ export default function DownloadsPage() {
           </Link>
         </div>
 
-        <h1 className="mb-6 text-4xl font-bold">下載 TREM</h1>
-
-        <div className="grid gap-6">
-          <section className={`
-            rounded-lg border p-6
-            dark:border-gray-700
+        <div className={`
+          grid gap-3
+          lg:grid-cols-3
+          sm:gap-4
+        `}
+        >
+          <div className={`
+            space-y-3
+            lg:col-span-2
+            sm:space-y-4
           `}
           >
-            <div className="mb-4">
-              <h2 className="text-2xl font-semibold">下載版本</h2>
-              <p className={`
-                mt-2 text-sm text-gray-600
-                dark:text-gray-400
+            <div className={`
+              rounded-lg border bg-white p-3
+              dark:border-gray-700 dark:bg-gray-800
+              sm:p-4
+            `}
+            >
+              <div className={`
+                mb-3 flex flex-col gap-2
+                sm:mb-4 sm:flex-row sm:items-center sm:justify-between
               `}
               >
-                {systemInfo.os !== 'unknown'
-                  ? `檢測到您的系統: ${systemInfo.os.toUpperCase()} (${systemInfo.arch})`
-                  : '未知裝置，請從下方選擇適合的版本'}
-              </p>
-            </div>
-
-            {downloadLink && (
-              <div className="mb-6 space-y-4">
-                <Button
-                  asChild
-                  size="lg"
-                  className={`
-                    w-full
-                    sm:w-auto
-                  `}
+                <div className={`
+                  flex flex-col items-start gap-2
+                  sm:flex-row sm:items-center
+                `}
                 >
+                  <h1 className={`
+                    text-xl font-bold
+                    sm:text-2xl
+                  `}
+                  >
+                    下載 TREM-Lite
+                  </h1>
+                  <VersionBadge version={selectedVersion} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`
+                    text-sm text-gray-600
+                    dark:text-gray-400
+                  `}
+                  >
+                    版本：
+                  </span>
+                  <select
+                    value={selectedVersion}
+                    onChange={(e) => setSelectedVersion(e.target.value)}
+                    className={`
+                      rounded-md border bg-white px-2 py-1 text-sm
+                      dark:border-gray-700 dark:bg-gray-800
+                    `}
+                  >
+                    {releases.map((release) => (
+                      <option key={release.tag_name} value={release.tag_name}>
+                        {release.tag_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={`
+                mb-3
+                sm:mb-4
+              `}
+              >
+                <p className={`
+                  text-sm text-gray-600
+                  dark:text-gray-400
+                `}
+                >
+                  {systemInfo.os !== 'unknown'
+                    ? `檢測到您的系統: ${systemInfo.os.toUpperCase()} (${systemInfo.arch})`
+                    : '未知裝置，請從下方選擇適合的版本'}
+                </p>
+                {currentRelease && (
+                  <p className={`
+                    mt-1 text-sm text-gray-600
+                    dark:text-gray-400
+                  `}
+                  >
+                    發布時間：
+                    {formatDate(currentRelease.published_at)}
+                  </p>
+                )}
+              </div>
+
+              {downloadLink && (
+                <Button asChild size="lg" className="w-full">
                   <a
                     href={downloadLink.url}
-                    className="inline-flex items-center"
+                    className="inline-flex items-center justify-center"
                   >
                     <Download className="mr-2 h-5 w-5" />
                     下載推薦版本 (
@@ -193,105 +291,93 @@ export default function DownloadsPage() {
                     )
                   </a>
                 </Button>
-                {releases && (
-                  <p className={`
-                    text-sm text-gray-600
-                    dark:text-gray-400
-                  `}
-                  >
-                    版本：
-                    {releases.tag_name}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">所有版本</h3>
-              <div className="grid gap-4">
-                {releases?.assets.map((asset) => (
+            <div className={`
+              rounded-lg border bg-white p-3
+              dark:border-gray-700 dark:bg-gray-800
+              sm:p-4
+            `}
+            >
+              <h2 className={`
+                mb-3 text-lg font-semibold
+                sm:text-xl
+              `}
+              >
+                系統需求
+              </h2>
+              <div className={`
+                grid grid-cols-1 gap-3
+                sm:grid-cols-3
+              `}
+              >
+                {['Windows', 'macOS', 'Linux'].map((os) => (
                   <div
-                    key={asset.name}
+                    key={os}
                     className={`
-                      flex items-center justify-between rounded-lg border p-4
+                      rounded-md border p-3
                       dark:border-gray-700
                     `}
                   >
-                    <div>
-                      <p className="font-medium">{asset.name}</p>
-                      <p className={`
-                        text-sm text-gray-600
-                        dark:text-gray-400
-                      `}
-                      >
-                        大小：
-                        {formatFileSize(asset.size)}
-                      </p>
-                    </div>
-                    <Button asChild variant="outline">
-                      <a
-                        href={asset.browser_download_url}
-                        className="inline-flex items-center"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        下載
-                      </a>
-                    </Button>
+                    <h3 className="mb-2 font-semibold">{os}</h3>
+                    <ul className="space-y-1 text-sm">
+                      <li>{os === 'Windows' ? 'Windows 10+' : os === 'macOS' ? 'macOS 11+' : 'Ubuntu 20.04+'}</li>
+                      <li>4GB RAM</li>
+                      <li>200MB 空間</li>
+                    </ul>
                   </div>
                 ))}
               </div>
             </div>
-          </section>
+          </div>
 
-          <section className={`
-            rounded-lg border p-6
-            dark:border-gray-700
-          `}
-          >
-            <h2 className="mb-4 text-2xl font-semibold">系統需求</h2>
-            <div className={`
-              grid gap-4
-              md:grid-cols-3
-            `}
-            >
+          <div>
+            {currentRelease && (
               <div className={`
-                rounded-md border p-4
-                dark:border-gray-700
+                rounded-lg border bg-white p-3
+                dark:border-gray-700 dark:bg-gray-800
+                sm:p-4
               `}
               >
-                <h3 className="mb-2 font-semibold">Windows</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>Windows 10 或更新版本</li>
-                  <li>4GB RAM</li>
-                  <li>200MB 硬碟空間</li>
-                </ul>
+                <h3 className="mb-3 text-lg font-semibold">所有檔案</h3>
+                <div className="space-y-2">
+                  {currentRelease.assets.map((asset) => (
+                    <div
+                      key={asset.name}
+                      className={`
+                        rounded-lg border p-2
+                        dark:border-gray-700
+                        sm:p-3
+                      `}
+                    >
+                      <p className="mb-1 truncate text-sm font-medium" title={asset.name}>
+                        {asset.name}
+                      </p>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className={`
+                          text-gray-600
+                          dark:text-gray-400
+                        `}
+                        >
+                          {formatFileSize(asset.size)}
+                        </span>
+                        <Button asChild size="sm" variant="outline">
+                          <a
+                            href={asset.browser_download_url}
+                            className="inline-flex items-center"
+                          >
+                            <Download className="mr-1 h-3 w-3" />
+                            下載
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className={`
-                rounded-md border p-4
-                dark:border-gray-700
-              `}
-              >
-                <h3 className="mb-2 font-semibold">macOS</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>macOS 11 或更新版本</li>
-                  <li>4GB RAM</li>
-                  <li>200MB 硬碟空間</li>
-                </ul>
-              </div>
-              <div className={`
-                rounded-md border p-4
-                dark:border-gray-700
-              `}
-              >
-                <h3 className="mb-2 font-semibold">Linux</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>Ubuntu 20.04 或相容發行版</li>
-                  <li>4GB RAM</li>
-                  <li>200MB 硬碟空間</li>
-                </ul>
-              </div>
-            </div>
-          </section>
+            )}
+          </div>
         </div>
       </div>
     </div>

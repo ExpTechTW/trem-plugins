@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 
