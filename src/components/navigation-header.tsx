@@ -3,9 +3,9 @@
 import { Book, Home, Moon, Store, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { useDarkMode } from '@/hooks/useDarkMode';
 
 type ButtonVariant = 'default' | 'ghost' | 'link' | 'destructive' | 'outline' | 'secondary';
 
@@ -18,24 +18,7 @@ interface NavigationButton {
 
 const NavigationHeader = () => {
   const pathname = usePathname();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const storedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(storedDarkMode);
-    document.documentElement.classList.toggle('dark', storedDarkMode);
-  }, []);
-
-  const handleDarkModeToggle = () => {
-    setIsDarkMode((prev) => {
-      const newValue = !prev;
-      localStorage.setItem('darkMode', String(newValue));
-      document.documentElement.classList.toggle('dark', newValue);
-      return newValue;
-    });
-  };
+  const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
   const commonButtons: NavigationButton[] = [
     {
@@ -93,7 +76,7 @@ const NavigationHeader = () => {
         <Button
           variant="outline"
           size="icon"
-          onClick={handleDarkModeToggle}
+          onClick={toggleDarkMode}
           aria-label={isDarkMode ? '切換淺色模式' : '切換深色模式'}
         >
           {mounted && isDarkMode

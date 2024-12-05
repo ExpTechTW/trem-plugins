@@ -41,7 +41,6 @@ export async function generateStaticParams() {
 }
 
 export default async function PluginPage({ params }: Props) {
-  // 等待解析 params
   const { name } = await params;
   const plugins = await fetchPlugins();
 

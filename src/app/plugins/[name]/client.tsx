@@ -1,18 +1,23 @@
 'use client';
 
-import { ArrowLeft, CheckCircle, Clock, Download, Lock, RefreshCw, Shield, ShieldCheck, Star, Tag } from 'lucide-react';
 import { SiGithub } from '@icons-pack/react-simple-icons';
+import {
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  Download,
+  Lock,
+  RefreshCw,
+  Shield,
+  ShieldCheck,
+  Star,
+  Tag,
+} from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import NavigationHeader from '@/components/navigation-header';
+import ActivityHeatmap from '@/components/activity_chart';
 import AppFooter from '@/components/footer';
-import GithubPeople from '@/components/github_people';
-import { InstallButtons } from '@/components/install';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -21,14 +26,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import UnsafePluginWarning from '@/components/dialogs/warn';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import GithubPeople from '@/components/github_people';
+import { InstallButtons } from '@/components/install';
+import NavigationHeader from '@/components/navigation-header';
 import PluginPageTab from '@/components/plugin_page';
-import ActivityHeatmap from '@/components/activity_chart';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import UnsafePluginWarning from '@/components/dialogs/warn';
+import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import type { Plugin } from '@/modal/plugin';
 
 function getPluginData(plugins: Plugin[], name: string): Plugin | null {
   return plugins.find((plugin) => plugin.name === name) || null;
+}
+
+interface CachedPlugins {
+  plugins: Plugin[];
+  timestamp: number;
 }
 
 export default function PluginPageClient({
@@ -38,26 +54,50 @@ export default function PluginPageClient({
   initialPlugins: Plugin[];
   name: string;
 }) {
-  const [plugins] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const cachedPlugins = localStorage.getItem('tremPlugins');
-      const lastFetch = localStorage.getItem('lastPluginsFetch');
-      const now = Date.now();
+  const [mounted, setMounted] = useState(false);
+  const [plugins, setPlugins] = useState<Plugin[]>(initialPlugins);
 
-      if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
-        return JSON.parse(cachedPlugins) as Plugin[];
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const cachedData = window?.localStorage?.getItem('tremPlugins');
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData) as CachedPlugins;
+        if (Date.now() - parsed.timestamp < 300000) {
+          setPlugins(parsed.plugins);
+          return;
+        }
+      }
+
+      if (initialPlugins.length > 0) {
+        const newCache: CachedPlugins = {
+          plugins: initialPlugins,
+          timestamp: Date.now(),
+        };
+        window?.localStorage?.setItem('tremPlugins', JSON.stringify(newCache));
       }
     }
-
-    if (initialPlugins.length > 0) {
-      localStorage.setItem('tremPlugins', JSON.stringify(initialPlugins));
-      localStorage.setItem('lastPluginsFetch', Date.now().toString());
+    catch (error) {
+      console.error('Failed to access localStorage:', error instanceof Error ? error.message : 'Unknown error');
     }
+  }, [initialPlugins]);
 
-    return initialPlugins;
-  });
   const plugin = getPluginData(plugins, name);
   const isVerified = plugin?.author.includes('ExpTechTW');
+
+  if (!mounted) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <NavigationHeader />
+        <div className={`
+          container mx-auto flex flex-1 items-center justify-center px-4 py-8
+        `}
+        >
+          <div className="text-center">載入中...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!plugin) {
     return (
@@ -67,6 +107,7 @@ export default function PluginPageClient({
           <h1 className="mb-4 text-2xl font-bold">找不到擴充</h1>
           <p>
             找不到名為
+            {' '}
             {name}
             {' '}
             的擴充。
