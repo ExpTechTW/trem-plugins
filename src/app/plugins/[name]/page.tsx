@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { ArrowLeft, CheckCircle, Clock, Download, RefreshCw, ShieldCheck, Tag } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Download, Lock, RefreshCw, Shield, ShieldCheck, Star, Tag } from 'lucide-react';
 import Link from 'next/link';
 
 import AppFooter from '@/components/footer';
@@ -11,7 +11,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import UnsafePluginWarning from '@/components/dialogs/mixin';
+import VersionList from '@/components/version_list';
 
 import type { Plugin } from '@/modal/plugin';
 
@@ -92,6 +101,7 @@ export default async function PluginPage({
 
   return (
     <div className="flex flex-col gap-4">
+      <UnsafePluginWarning pluginName={plugin.name} />
       <main className="container mx-auto min-h-svh flex-1 px-4 py-8">
         <div className="mb-4">
           <Button variant="ghost" size="sm" asChild>
@@ -119,36 +129,118 @@ export default async function PluginPage({
                   <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
                   {isVerified && (
                     <div className="flex translate-y-[1px] items-center gap-2">
-                      <Badge className={`
-                        flex items-center gap-1.5 py-1 text-xs text-green-500
-                        dark:text-green-700 dark:hover:bg-green-900/40
-                        hover:bg-green-100/80
-                      `}
-                      >
-                        <CheckCircle
-                          size={16}
-                          className={`
-                            text-green-500
-                            dark:text-green-700
-                          `}
-                        />
-                        官方認證
-                      </Badge>
-                      <Badge className={`
-                        flex items-center gap-1.5 py-1 text-xs text-blue-500
-                        dark:text-blue-700 dark:hover:bg-blue-900/40
-                        hover:bg-blue-100/80
-                      `}
-                      >
-                        <ShieldCheck
-                          size={16}
-                          className={`
-                            text-blue-500
-                            dark:text-blue-700
-                          `}
-                        />
-                        安全載入
-                      </Badge>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button
+                            className={`
+                              flex items-center gap-1.5 rounded-md bg-gray-800
+                              px-3 py-1 text-xs text-white transition-colors
+                              dark:bg-gray-700 dark:hover:bg-gray-600
+                              hover:bg-gray-700
+                            `}
+                          >
+                            <CheckCircle
+                              size={16}
+                              className="text-green-400"
+                            />
+                            官方認證
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <div className="flex items-center gap-3">
+                              <div className={`
+                                rounded-full bg-green-50 p-2
+                                dark:bg-green-900/20
+                              `}
+                              >
+                                <CheckCircle className={`
+                                  h-6 w-6 text-green-500
+                                  dark:text-green-400
+                                `}
+                                />
+                              </div>
+                              <DialogTitle className="text-xl">官方認證</DialogTitle>
+                            </div>
+                            <DialogDescription className="mt-4 space-y-4">
+                              <p>此認證標章表示擴充已通過官方認證，需符合以下條件。</p>
+
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Shield className="h-5 w-5 text-blue-500" />
+                                  <span>高穩定性，不易受軟體更新影響</span>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Lock className="h-5 w-5 text-purple-500" />
+                                  <span>沒有任何可能導致安全疑慮的程式碼</span>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Star className="h-5 w-5 text-yellow-500" />
+                                  <span>開發者保持良好的互動記錄</span>
+                                </div>
+                              </div>
+                            </DialogDescription>
+                          </DialogHeader>
+                        </DialogContent>
+                      </Dialog>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button
+                            className={`
+                              flex items-center gap-1.5 rounded-md bg-gray-800
+                              px-3 py-1 text-xs text-white transition-colors
+                              dark:bg-gray-700 dark:hover:bg-gray-600
+                              hover:bg-gray-700
+                            `}
+                          >
+                            <ShieldCheck
+                              size={16}
+                              className="text-blue-400"
+                            />
+                            安全載入
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <div className="flex items-center gap-3">
+                              <div className={`
+                                rounded-full bg-blue-50 p-2
+                                dark:bg-blue-900/20
+                              `}
+                              >
+                                <ShieldCheck className={`
+                                  h-6 w-6 text-blue-500
+                                  dark:text-blue-400
+                                `}
+                                />
+                              </div>
+                              <DialogTitle className="text-xl">安全載入</DialogTitle>
+                            </div>
+                            <DialogDescription className="mt-4 space-y-4">
+                              <p>
+                                安全載入指的是在執行擴充功能時，確保擴充功能的執行不會影響軟體的穩定性。
+                              </p>
+
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Shield className="h-5 w-5 text-blue-500" />
+                                  <span>限制擴充使用可能導致軟體崩潰的大多數高風險操作</span>
+                                </div>
+                              </div>
+
+                              <p className={`
+                                text-sm text-gray-500
+                                dark:text-gray-400
+                              `}
+                              >
+                                透過這種方式，能最大程度降低擴充功能對軟體的潛在影響。
+                              </p>
+                            </DialogDescription>
+                          </DialogHeader>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   )}
                   <p className="text-sm text-muted-foreground">
@@ -274,47 +366,7 @@ export default async function PluginPage({
                   `}
                   >
                     <div className="space-y-6">
-                      {plugin.repository.releases.releases.map((release) => (
-                        <div
-                          key={release.tag_name}
-                          className={`
-                            border-b pb-4
-                            last:border-0
-                          `}
-                        >
-                          <div className={`
-                            mb-2 flex flex-col gap-2
-                            sm:flex-row sm:items-start sm:justify-between
-                          `}
-                          >
-                            <h3 className="font-medium">
-                              {release.tag_name}
-                              <span className={`
-                                block text-sm text-muted-foreground
-                                sm:ml-2 sm:inline
-                              `}
-                              >
-                                (
-                                {new Date(release.published_at).toLocaleDateString('zh-TW')}
-                                )
-                              </span>
-                            </h3>
-                            <Button variant="outline" size="sm" asChild>
-                              <a
-                                href={`https://github.com/${plugin.repository.full_name}/releases/download/${release.tag_name}/${plugin.name}.trem`}
-                                download
-                              >
-                                下載
-                              </a>
-                            </Button>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            下載次數:
-                            {' '}
-                            {formatNumber(release.downloads)}
-                          </div>
-                        </div>
-                      ))}
+                      <VersionList plugin={plugin} />
                     </div>
                   </CardContent>
                 </Card>
