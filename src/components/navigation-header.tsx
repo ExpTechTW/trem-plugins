@@ -7,14 +7,26 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
+type ButtonVariant = 'default' | 'ghost' | 'link' | 'destructive' | 'outline' | 'secondary';
+
+interface NavigationButton {
+  href: string;
+  icon: JSX.Element;
+  text: string;
+  variant: (pathname: string) => ButtonVariant;
+}
+
 const NavigationHeader = () => {
   const pathname = usePathname();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const storedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(storedDarkMode);
+    document.documentElement.classList.toggle('dark', storedDarkMode);
+  }, []);
 
   const handleDarkModeToggle = () => {
     setIsDarkMode((prev) => {
@@ -25,9 +37,49 @@ const NavigationHeader = () => {
     });
   };
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, []);
+  const commonButtons: NavigationButton[] = [
+    {
+      href: '/',
+      icon: <Home className="h-4 w-4" />,
+      text: '首頁',
+      variant: (p) => p === '/' ? 'default' : 'ghost',
+    },
+    {
+      href: '/store',
+      icon: <Store className="h-4 w-4" />,
+      text: '擴充',
+      variant: (p) => (p.startsWith('/store') || p.startsWith('/plugins')) ? 'default' : 'ghost',
+    },
+    {
+      href: 'https://exptechtw.github.io/TREM-docs',
+      icon: <Book className="h-4 w-4" />,
+      text: '文件',
+      variant: () => 'ghost',
+    },
+  ];
+
+  const renderButtons = (isMounted: boolean) =>
+    commonButtons.map(({ href, icon, text, variant }) => {
+      const ButtonContent = (
+        <Button
+          variant={variant(pathname)}
+          className="flex items-center gap-2"
+        >
+          {icon}
+          {text}
+        </Button>
+      );
+
+      return isMounted
+        ? (
+            <Link key={href} href={href}>
+              {ButtonContent}
+            </Link>
+          )
+        : (
+            <div key={href}>{ButtonContent}</div>
+          );
+    });
 
   return (
     <div className="border-b">
@@ -36,40 +88,19 @@ const NavigationHeader = () => {
       `}
       >
         <div className="flex space-x-4">
-          <Link href="/">
-            <Button
-              variant={pathname === '/' ? 'default' : 'ghost'}
-              className="flex items-center gap-2"
-            >
-              <Home className="h-4 w-4" />
-              首頁
-            </Button>
-          </Link>
-          <Link href="/store">
-            <Button
-              variant={pathname.startsWith('/store') || pathname.startsWith('/plugins') ? 'default' : 'ghost'}
-              className="flex items-center gap-2"
-            >
-              <Store className="h-4 w-4" />
-              擴充
-            </Button>
-          </Link>
-          <Link href="https://exptechtw.github.io/TREM-docs">
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2"
-            >
-              <Book className="h-4 w-4" />
-              文件
-            </Button>
-          </Link>
+          {renderButtons(mounted)}
         </div>
         <Button
           variant="outline"
           size="icon"
           onClick={handleDarkModeToggle}
+          aria-label={isDarkMode ? '切換淺色模式' : '切換深色模式'}
         >
-          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {mounted && isDarkMode
+            ? <Sun className="h-5 w-5" />
+            : (
+                <Moon className="h-5 w-5" />
+              )}
         </Button>
       </div>
     </div>
