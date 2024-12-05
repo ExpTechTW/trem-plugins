@@ -4,10 +4,10 @@ import { Download, Loader2Icon } from 'lucide-react';
 import { redirect, usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import AnimatedCounter from '@/lib/counter';
 import { Button } from '@/components/ui/button';
 import VersionBadge from '@/components/dialogs/version';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';
