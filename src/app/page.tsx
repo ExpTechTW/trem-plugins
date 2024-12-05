@@ -55,7 +55,7 @@ export default function HomePage() {
               </div>
               <div className="rounded-md border p-4">
                 <h3 className="mb-2 font-semibold">擴充功能</h3>
-                <p>豐富的插件生態系統，打造個人化體驗</p>
+                <p>豐富的擴充生態系統，打造個人化體驗</p>
               </div>
             </div>
           </section>
