@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plugin } from '@/modal/plugin';
+import Plugin from '@/modal/plugin';
 
 import VersionList from './version_list';
 import ReadmeTab from './readme';

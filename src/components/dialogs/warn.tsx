@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plugin } from '@/modal/plugin';
+import Plugin from '@/modal/plugin';
 
 const UnsafePluginWarning = ({ plugin }: { plugin: Plugin }) => {
   const [open, setOpen] = useState(false);

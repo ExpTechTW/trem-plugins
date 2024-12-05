@@ -1,4 +1,4 @@
-import type { Plugin } from '@/modal/plugin';
+import type Plugin from '@/modal/plugin';
 
 export async function fetchPlugins(): Promise<Plugin[]> {
   try {

@@ -8,7 +8,7 @@ import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 import GithubPeople from './github_people';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-import type { Plugin } from '@/modal/plugin';
+import type Plugin from '@/modal/plugin';
 
 type Props = Readonly<{
   plugin: Plugin;

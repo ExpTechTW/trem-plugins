@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 
 import { Card, CardContent } from '@/components/ui/card';
 
-import type { Plugin } from '@/modal/plugin';
+import type Plugin from '@/modal/plugin';
 
 interface ReadmeProps {
   plugin: Plugin;

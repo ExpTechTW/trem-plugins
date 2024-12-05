@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plugin } from '@/modal/plugin';
+import Plugin from '@/modal/plugin';
 
 interface DayActivity {
   date: string;

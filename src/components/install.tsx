@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-import type { Plugin } from '@/modal/plugin';
+import type Plugin from '@/modal/plugin';
 
 interface InstallButtonsProps {
   plugin: Plugin;
