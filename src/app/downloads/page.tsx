@@ -1,12 +1,14 @@
 'use client';
 
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Loader2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import NavigationHeader from '@/components/navigation-header';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import VersionBadge from '@/components/dialogs/version';
+import AnimatedCounter from '@/lib/counter';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';
@@ -18,6 +20,7 @@ interface GithubAsset {
   size: number;
   browser_download_url: string;
   created_at: string;
+  download_count: number; // Added download count
 }
 
 interface GithubRelease {
@@ -26,12 +29,21 @@ interface GithubRelease {
   published_at: string;
 }
 
+interface DownloadStats {
+  totalDownloads: number;
+  versionDownloads: number;
+}
+
 const CACHE_DURATION = 1000 * 60 * 60;
 const MAX_RELEASES = 5;
 
 const formatFileSize = (bytes: number): string => {
   const mb = bytes / (1024 * 1024);
   return `${mb.toFixed(1)} MB`;
+};
+
+const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('zh-TW').format(num);
 };
 
 const formatDate = (dateString: string): string => {
@@ -69,6 +81,22 @@ const getSystemInfo = (): SystemInfo => {
   return { os, arch };
 };
 
+const DownloadStats: React.FC<DownloadStats> = ({ totalDownloads, versionDownloads }) => {
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-4">
+      <AnimatedCounter
+        end={totalDownloads}
+        title="總下載量"
+        formatter={(value: number) => value.toString()}
+      />
+      <AnimatedCounter
+        end={versionDownloads}
+        title="此版本下載量"
+        formatter={(value: number) => value.toString()}
+      />
+    </div>
+  );
+};
 export default function DownloadsPage() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo>({ os: 'unknown', arch: 'unknown' });
   const [releases, setReleases] = useState<GithubRelease[]>([]);
@@ -147,15 +175,33 @@ export default function DownloadsPage() {
       : null;
   };
 
+  const calculateStats = () => {
+    const totalDownloads = releases.reduce((total, release) =>
+      total + release.assets.reduce((sum, asset) => sum + asset.download_count, 0), 0);
+
+    const currentRelease = releases.find((r) => r.tag_name === selectedVersion);
+    const versionDownloads = currentRelease
+      ? currentRelease.assets.reduce((sum, asset) => sum + asset.download_count, 0)
+      : 0;
+
+    return { totalDownloads, versionDownloads };
+  };
+
   const currentRelease = releases.find((r) => r.tag_name === selectedVersion);
   const downloadLink = currentRelease ? getDownloadLink(currentRelease) : null;
+  const stats = calculateStats();
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className={`
+        flex min-h-screen flex-col bg-white
+        dark:bg-black
+      `}
+      >
         <NavigationHeader />
         <div className="flex flex-1 items-center justify-center">
-          <div className="text-center">載入中...</div>
+          <Loader2Icon className="animate-spin" />
+          <div className="text-lg">載入中...</div>
         </div>
       </div>
     );
@@ -163,8 +209,8 @@ export default function DownloadsPage() {
 
   return (
     <div className={`
-      flex min-h-screen flex-col bg-gray-50
-      dark:bg-gray-900
+      flex min-h-screen flex-col bg-white
+      dark:bg-black
     `}
     >
       <NavigationHeader />
@@ -178,17 +224,19 @@ export default function DownloadsPage() {
           sm:mb-4
         `}
         >
-          <Link
-            href="/"
-            className={`
-              inline-flex items-center text-sm text-gray-600
-              dark:text-gray-400 dark:hover:text-gray-200
-              hover:text-gray-900
-            `}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回首頁
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className={`
+                inline-flex items-center text-sm text-gray-600
+                dark:text-gray-400 dark:hover:text-gray-200
+                hover:text-gray-900
+              `}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              返回首頁
+            </Link>
+          </div>
         </div>
 
         <div className={`
@@ -205,10 +253,14 @@ export default function DownloadsPage() {
           >
             <div className={`
               rounded-lg border bg-white p-3
-              dark:border-gray-700 dark:bg-gray-800
+              dark:border-gray-700 dark:bg-black
               sm:p-4
             `}
             >
+              <DownloadStats
+                totalDownloads={stats.totalDownloads}
+                versionDownloads={stats.versionDownloads}
+              />
               <div className={`
                 mb-3 flex flex-col gap-2
                 sm:mb-4 sm:flex-row sm:items-center sm:justify-between
@@ -296,7 +348,7 @@ export default function DownloadsPage() {
 
             <div className={`
               rounded-lg border bg-white p-3
-              dark:border-gray-700 dark:bg-gray-800
+              dark:border-gray-700 dark:bg-black
               sm:p-4
             `}
             >
@@ -336,7 +388,7 @@ export default function DownloadsPage() {
             {currentRelease && (
               <div className={`
                 rounded-lg border bg-white p-3
-                dark:border-gray-700 dark:bg-gray-800
+                dark:border-gray-700 dark:bg-black
                 sm:p-4
               `}
               >
@@ -354,14 +406,27 @@ export default function DownloadsPage() {
                       <p className="mb-1 truncate text-sm font-medium" title={asset.name}>
                         {asset.name}
                       </p>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className={`
-                          text-gray-600
-                          dark:text-gray-400
-                        `}
-                        >
-                          {formatFileSize(asset.size)}
-                        </span>
+                      <div className={`
+                        flex items-center justify-between text-sm
+                      `}
+                      >
+                        <div className="flex flex-col">
+                          <span className={`
+                            text-gray-600
+                            dark:text-gray-400
+                          `}
+                          >
+                            {formatFileSize(asset.size)}
+                          </span>
+                          <span className={`
+                            text-xs text-gray-500
+                            dark:text-gray-400
+                          `}
+                          >
+                            下載量：
+                            {formatNumber(asset.download_count)}
+                          </span>
+                        </div>
                         <Button asChild size="sm" variant="outline">
                           <a
                             href={asset.browser_download_url}

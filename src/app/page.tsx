@@ -15,7 +15,7 @@ const DownloadSection = dynamic(() => Promise.resolve(() => {
   return (
     <div className="rounded-md border p-4">
       <h3 className="mb-2 font-semibold">下載安裝</h3>
-      <p className="mb-2">立即下載 TREM 開始使用完整功能</p>
+      <p className="mb-2">立即下載 TREM-Lite 開始使用完整功能</p>
       <Button asChild>
         <Link href="/downloads">
           <Download className="mr-2 h-4 w-4" />
@@ -38,7 +38,7 @@ export default function HomePage() {
           <section className="rounded-lg border p-6">
             <h2 className="mb-4 text-2xl font-semibold">關於 TREM</h2>
             <p className="mb-4 text-lg">
-              TREM 是一個強大的地震監測和警報系統，為台灣地區提供即時地震資訊和預警服務。
+              TREM 是一個強大的地震監測和警報系統，為臺灣地區提供即時地震資訊和預警服務。
             </p>
             <div className={`
               grid gap-4
