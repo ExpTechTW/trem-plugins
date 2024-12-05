@@ -70,11 +70,8 @@ export default function PluginPageClient({
       }
 
       if (initialPlugins.length > 0) {
-        const newCache: CachedPlugins = {
-          plugins: initialPlugins,
-          timestamp: Date.now(),
-        };
-        window?.localStorage?.setItem('tremPlugins', JSON.stringify(newCache));
+        window?.localStorage?.setItem('tremPlugins', JSON.stringify(initialPlugins));
+        localStorage.setItem('lastPluginsFetch', Date.now().toString());
       }
     }
     catch (error) {
@@ -178,35 +175,38 @@ export default function PluginPageClient({
                                 </div>
                                 <DialogTitle className="text-xl">官方認證</DialogTitle>
                               </div>
-                              <DialogDescription className="mt-4 space-y-4">
-                                <div>此認證標章表示擴充已通過官方認證，需符合以下條件：</div>
+                              <DialogDescription asChild>
+                                <div className="mt-4 space-y-4">
+                                  <div>此認證標章表示擴充已通過官方認證，需符合以下條件：</div>
 
-                                <div className="space-y-3">
-                                  <div className={`
-                                    flex items-center gap-2 text-sm
-                                  `}
-                                  >
-                                    <Shield className="h-5 w-5 text-blue-500" />
-                                    <span>高穩定性，不易受軟體更新影響</span>
+                                  <div className="space-y-3">
+                                    <div className={`
+                                      flex items-center gap-2 text-sm
+                                    `}
+                                    >
+                                      <Shield className="h-5 w-5 text-blue-500" />
+                                      <span>高穩定性，不易受軟體更新影響</span>
+                                    </div>
+
+                                    <div className={`
+                                      flex items-center gap-2 text-sm
+                                    `}
+                                    >
+                                      <Lock className="h-5 w-5 text-purple-500" />
+                                      <span>沒有任何可能導致安全疑慮的程式碼</span>
+                                    </div>
+
+                                    <div className={`
+                                      flex items-center gap-2 text-sm
+                                    `}
+                                    >
+                                      <Star className="h-5 w-5 text-yellow-500" />
+                                      <span>建議使用經過官方認證的擴充功能以確保安全性</span>
+                                    </div>
                                   </div>
 
-                                  <div className={`
-                                    flex items-center gap-2 text-sm
-                                  `}
-                                  >
-                                    <Lock className="h-5 w-5 text-purple-500" />
-                                    <span>沒有任何可能導致安全疑慮的程式碼</span>
-                                  </div>
-
-                                  <div className={`
-                                    flex items-center gap-2 text-sm
-                                  `}
-                                  >
-                                    <Star className="h-5 w-5 text-yellow-500" />
-                                    <span>開發者保持良好的互動記錄</span>
-                                  </div>
+                                  <div>建議使用經過官方認證的擴充功能以確保安全性。</div>
                                 </div>
-                                <div>建議使用經過官方認證的擴充功能以確保安全性。</div>
                               </DialogDescription>
                             </DialogHeader>
                           </DialogContent>
@@ -240,25 +240,21 @@ export default function PluginPageClient({
                                 </div>
                                 <DialogTitle className="text-xl">安全載入</DialogTitle>
                               </div>
-                              <DialogDescription className="mt-4 space-y-4">
-                                <div>安全載入指的是在執行擴充功能時，確保擴充功能的執行不會影響軟體的穩定性。</div>
+                              <DialogDescription asChild>
+                                <div className="mt-4 space-y-4">
+                                  <div>安全載入指的是在執行擴充功能時，確保擴充功能的執行不會影響軟體的穩定性。</div>
 
-                                <div className="space-y-3">
-                                  <div className={`
-                                    flex items-center gap-2 text-sm
-                                  `}
-                                  >
-                                    <Shield className="h-5 w-5 text-blue-500" />
-                                    <span>限制擴充使用可能導致軟體崩潰的大多數高風險操作</span>
+                                  <div className="space-y-3">
+                                    <div className={`
+                                      flex items-center gap-2 text-sm
+                                    `}
+                                    >
+                                      <Shield className="h-5 w-5 text-blue-500" />
+                                      <span>限制擴充使用可能導致軟體崩潰的大多數高風險操作</span>
+                                    </div>
                                   </div>
-                                </div>
 
-                                <div className={`
-                                  text-sm text-gray-500
-                                  dark:text-gray-400
-                                `}
-                                >
-                                  透過這種方式，能最大程度降低擴充功能對軟體的潛在影響。
+                                  <div>透過這種方式，能最大程度降低擴充功能對軟體的潛在影響。</div>
                                 </div>
                               </DialogDescription>
                             </DialogHeader>

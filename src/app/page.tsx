@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 
@@ -17,10 +18,10 @@ const DownloadSection = dynamic(() => Promise.resolve(() => {
       <h3 className="mb-2 font-semibold">下載安裝</h3>
       <p className="mb-2">立即下載 TREM 開始使用完整功能</p>
       <Button asChild>
-        <a href="/downloads">
+        <Link href="/downloads">
           <Download className="mr-2 h-4 w-4" />
           前往下載頁面
-        </a>
+        </Link>
       </Button>
     </div>
   );
@@ -72,7 +73,9 @@ export default function HomePage() {
                 <h3 className="mb-2 font-semibold">瀏覽擴充功能</h3>
                 <p className="mb-2">探索豐富的擴充功能，提升使用體驗</p>
                 <Link href="/store">
-                  <Button variant="outline">前往擴充商店</Button>
+                  <Button variant="outline">
+                    前往擴充商店
+                  </Button>
                 </Link>
               </div>
             </div>
