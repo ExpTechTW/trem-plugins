@@ -20,7 +20,7 @@ interface GithubAsset {
   size: number;
   browser_download_url: string;
   created_at: string;
-  download_count: number; // Added download count
+  download_count: number;
 }
 
 interface GithubRelease {
@@ -67,11 +67,11 @@ const getSystemInfo = (): SystemInfo => {
 
   if (platform.includes('mac')) {
     os = 'mac';
-    arch = window.navigator.userAgent.includes('Mac') && window.navigator.userAgent.includes('Apple') ? 'arm64' : 'x64';
+    arch = navigator.userAgent.includes('Mac') && navigator.userAgent.includes('Apple') ? 'arm64' : 'x64';
   }
   else if (platform.includes('win')) {
     os = 'windows';
-    arch = userAgent.includes('x64') || userAgent.includes('amd64') ? 'x64' : 'i32';
+    arch = userAgent.includes('wow64') || userAgent.includes('x64') || userAgent.includes('amd64') ? 'x64' : 'i32';
   }
   else if (platform.includes('linux')) {
     os = 'linux';
@@ -79,6 +79,52 @@ const getSystemInfo = (): SystemInfo => {
   }
 
   return { os, arch };
+};
+
+const getSystemLabel = (systemInfo: SystemInfo): string => {
+  const labels = {
+    mac: {
+      arm64: 'macOS (Apple Silicon)',
+      x64: 'macOS (Intel)',
+    },
+    windows: {
+      x64: 'Windows (X64)',
+      i32: 'Windows (x86)',
+    },
+    linux: {
+      x64: 'Linux (amd64)',
+      arm64: 'Linux (arm64)',
+    },
+  };
+
+  return systemInfo.os !== 'unknown' && systemInfo.arch !== 'unknown'
+    ? labels[systemInfo.os]?.[systemInfo.arch] || '未知系統'
+    : '未知系統';
+};
+
+const getDownloadLink = (release: GithubRelease, systemInfo: SystemInfo) => {
+  if (systemInfo.os === 'unknown') return null;
+
+  let fileExtension = '';
+
+  if (systemInfo.os === 'mac') {
+    fileExtension = systemInfo.arch === 'arm64' ? 'arm64.dmg' : 'x64.dmg';
+  }
+  else if (systemInfo.os === 'linux') {
+    fileExtension = systemInfo.arch === 'arm64' ? 'arm64.deb' : 'amd64.deb';
+  }
+  else if (systemInfo.os === 'windows') {
+    fileExtension = systemInfo.arch === 'x64' ? 'x64.exe' : 'ia32.exe';
+  }
+
+  const asset = release.assets.find((asset) => asset.name.endsWith(fileExtension));
+
+  return asset
+    ? {
+        url: asset.browser_download_url,
+        size: formatFileSize(asset.size),
+      }
+    : null;
 };
 
 const DownloadStats: React.FC<DownloadStats> = ({ totalDownloads, versionDownloads }) => {
@@ -167,26 +213,6 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
     void fetchReleases();
   }, [initialVersion]);
 
-  const getDownloadLink = (release: GithubRelease) => {
-    if (systemInfo.os === 'unknown') return null;
-
-    let searchPattern = '';
-    if (systemInfo.os === 'mac') {
-      searchPattern = systemInfo.arch === 'arm64' ? 'arm64.dmg' : 'x64.dmg';
-    }
-
-    const asset = release.assets.find((asset) =>
-      asset.name.toLowerCase().includes(searchPattern),
-    );
-
-    return asset
-      ? {
-          url: asset.browser_download_url,
-          size: formatFileSize(asset.size),
-        }
-      : null;
-  };
-
   const calculateStats = () => {
     const totalDownloads = releases.reduce((total, release) =>
       total + release.assets.reduce((sum, asset) => sum + asset.download_count, 0), 0);
@@ -200,7 +226,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
   };
 
   const currentRelease = releases.find((r) => r.tag_name === selectedVersion);
-  const downloadLink = currentRelease ? getDownloadLink(currentRelease) : null;
+  const downloadLink = currentRelease ? getDownloadLink(currentRelease, systemInfo) : null;
   const stats = calculateStats();
 
   if (loading) {
@@ -274,7 +300,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
                   <Select value={selectedVersion} onValueChange={handleVersionChange}>
                     <SelectTrigger>{selectedVersion}</SelectTrigger>
                     <SelectContent>
-                      {...releases.map((release) => (
+                      {releases.map((release) => (
                         <SelectItem key={release.tag_name} value={release.tag_name}>{release.tag_name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -293,7 +319,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
                 `}
                 >
                   {systemInfo.os !== 'unknown'
-                    ? `檢測到您的系統: ${systemInfo.os.toUpperCase()} (${systemInfo.arch})`
+                    ? `檢測到您的系統: ${getSystemLabel(systemInfo)}`
                     : '未知裝置，請從下方選擇適合的版本'}
                 </p>
                 {currentRelease && (
@@ -308,19 +334,23 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
                 )}
               </div>
 
-              {downloadLink && (
-                <Button asChild size="lg" className="w-full">
-                  <a
-                    href={downloadLink.url}
-                    className="inline-flex items-center justify-center"
-                  >
-                    <Download className="mr-2 h-5 w-5" />
-                    下載推薦版本 (
-                    {downloadLink.size}
-                    )
-                  </a>
-                </Button>
-              )}
+              {downloadLink
+                ? (
+                    <Button asChild size="lg" className="w-full">
+                      <a
+                        href={downloadLink.url}
+                        className="inline-flex items-center justify-center"
+                      >
+                        <Download className="mr-2 h-5 w-5" />
+                        下載推薦版本 (
+                        {downloadLink.size}
+                        )
+                      </a>
+                    </Button>
+                  )
+                : (
+                    <p className="text-center text-red-500">無符合的下載推薦</p>
+                  )}
             </div>
 
             <div className={`
@@ -391,10 +421,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
                       <p className="mb-1 truncate text-sm font-medium" title={asset.name}>
                         {asset.name}
                       </p>
-                      <div className={`
-                        flex items-center justify-between text-sm
-                      `}
-                      >
+                      <div className="flex items-center justify-between text-sm">
                         <div className="flex flex-col">
                           <span className={`
                             text-gray-600
