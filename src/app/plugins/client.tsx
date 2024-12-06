@@ -15,16 +15,21 @@ import GithubPeople from '@/components/github_people';
 import { InstallButtons } from '@/components/install';
 import PluginPageTab from '@/components/plugin_page';
 import UnsafePluginWarning from '@/components/dialogs/warn';
+import { usePluginStore } from '@/stores/plugins';
 
 import type Plugin from '@/modal/plugin';
 
-function PluginContent({ plugin, plugins }: { plugin: Plugin; plugins: Plugin[] }) {
+type Props = Readonly<{
+  plugin: Plugin;
+}>;
+
+function PluginContent({ plugin }: Props) {
   const searchParams = useSearchParams();
   const version = searchParams.get('version') || '';
 
   return (
     <Suspense fallback={<div>載入中...</div>}>
-      <PluginPageTab plugin={plugin} allPlugins={plugins} version={version} />
+      <PluginPageTab plugin={plugin} version={version} />
     </Suspense>
   );
 }
@@ -41,51 +46,18 @@ function LoadingState() {
 }
 
 export default function PluginPageClient() {
+  const pluginStore = usePluginStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get('name');
   const [mounted, setMounted] = useState(false);
-  const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    async function loadPlugins() {
-      try {
-        const cachedPlugins = localStorage.getItem('tremPlugins');
-        const lastFetch = localStorage.getItem('lastPluginsFetch');
-        const now = Date.now();
 
-        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
-          const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
-          setPlugins(Array.isArray(parsedPlugins) ? parsedPlugins : []);
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(
-          'https://raw.githack.com/ExpTechTW/trem-plugins/refs/heads/main/data/repository_stats.json',
-        );
-
-        const pluginsData = (await response.json()) as Plugin[];
-
-        if (!Array.isArray(pluginsData) || pluginsData.length === 0) {
-          throw new Error('無法載入擴充數據');
-        }
-
-        localStorage.setItem('tremPlugins', JSON.stringify(pluginsData));
-        localStorage.setItem('lastPluginsFetch', now.toString());
-        setPlugins(pluginsData);
-      }
-      catch (error) {
-        console.error('Failed to load plugins:', error);
-      }
-      finally {
-        setLoading(false);
-      }
-    }
-
-    void loadPlugins();
+    void pluginStore.fetch()
+      .finally(() => setLoading(false));
   }, []);
 
   if (!mounted || loading) {
@@ -99,7 +71,7 @@ export default function PluginPageClient() {
     return <LoadingState />;
   }
 
-  const plugin = plugins.find((p) => p.name === name);
+  const plugin = pluginStore.getPluginByName(name);
   if (!plugin) {
     router.push(`/store`);
     return <LoadingState />;
@@ -348,7 +320,7 @@ export default function PluginPageClient() {
 
           <div className="lg:col-span-3">
             <Suspense fallback={<div>載入中...</div>}>
-              <PluginContent plugin={plugin} plugins={plugins} />
+              <PluginContent plugin={plugin} />
             </Suspense>
           </div>
         </div>

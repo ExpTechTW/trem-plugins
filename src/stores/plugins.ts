@@ -15,6 +15,7 @@ interface PluginStore {
   fetch(): Promise<void>;
   getTotalDownloads(): number;
   getTotalAuthors(): number;
+  getPluginByName(name: string): Plugin | null;
 }
 
 export const usePluginStore = create(
@@ -50,6 +51,9 @@ export const usePluginStore = create(
         return new Set(
           get().plugins.flatMap((p) => p.author),
         ).size;
+      },
+      getPluginByName(name) {
+        return get().plugins.find((plugin) => plugin.name == name) ?? null;
       },
     }),
     {

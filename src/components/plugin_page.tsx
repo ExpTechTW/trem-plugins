@@ -6,19 +6,21 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Plugin from '@/modal/plugin';
+import { usePluginStore } from '@/stores/plugins';
 
 import ReadmeTab from './readme';
 import VersionList from './version_list';
 
-const PluginPageTab = ({ plugin, allPlugins, version }: { plugin: Plugin; allPlugins: Plugin[];version: string }) => {
+const PluginPageTab = ({ plugin, version }: { plugin: Plugin;version: string }) => {
   const router = useRouter();
+  const plugins = usePluginStore((state) => state.plugins);
 
-  const dependentPlugins = allPlugins.filter((p) =>
+  const dependentPlugins = plugins.filter((p) =>
     Object.entries(p.dependencies).some(([key]) => key === plugin.name),
   );
 
   const handleDependencyClick = (packageName: string) => {
-    const targetPlugin = allPlugins.find((p) => p.name === packageName);
+    const targetPlugin = plugins.find((p) => p.name === packageName);
     if (targetPlugin) {
       router.push(`/plugins/${packageName}`);
     }
@@ -67,7 +69,7 @@ const PluginPageTab = ({ plugin, allPlugins, version }: { plugin: Plugin; allPlu
                     key={key}
                     className={`
                       w-full rounded-lg border p-4 transition-colors
-                      ${allPlugins.some((p) => p.name === key)
+                      ${plugins.some((p) => p.name === key)
                     ? `
                       cursor-pointer
                       hover:bg-accent
@@ -75,8 +77,8 @@ const PluginPageTab = ({ plugin, allPlugins, version }: { plugin: Plugin; allPlu
                     : ''}
                     `}
                     onClick={() => handleDependencyClick(key)}
-                    role={allPlugins.some((p) => p.name === key) ? 'button' : ''}
-                    tabIndex={allPlugins.some((p) => p.name === key) ? 0 : undefined}
+                    role={plugins.some((p) => p.name === key) ? 'button' : ''}
+                    tabIndex={plugins.some((p) => p.name === key) ? 0 : undefined}
                   >
                     <div className="break-words font-medium">{key}</div>
                     <div className="break-words text-sm text-muted-foreground">
