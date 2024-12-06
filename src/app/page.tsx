@@ -1,6 +1,6 @@
 'use client';
 
-import { Download } from 'lucide-react';
+import { Download, GitFork, Star } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 import dynamic from 'next/dynamic';
@@ -51,6 +51,43 @@ export default function HomePage() {
               <h3 className="mb-2 font-semibold">擴充功能</h3>
               <p>豐富的擴充生態系統，打造個人化體驗</p>
             </div>
+          </div>
+        </section>
+
+        {/* 新增的 GitHub 資訊區塊 */}
+        <section className="rounded-lg border p-6">
+          <h2 className="mb-4 text-2xl font-semibold">GitHub</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link
+                href="https://github.com/TREM"
+                className={`
+                  text-lg font-medium
+                  hover:underline
+                `}
+              >
+                TREM-Lite
+              </Link>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center">
+                  <Star className="mr-1 h-4 w-4" />
+                  <span>11</span>
+                </div>
+                <div className="flex items-center">
+                  <GitFork className="mr-1 h-4 w-4" />
+                  <span>1</span>
+                </div>
+              </div>
+            </div>
+            <Button asChild>
+              <Link href="https://github.com/ExpTechTW/TREM-Lite">
+                查看原始碼
+              </Link>
+            </Button>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
+            <span>JavaScript</span>
           </div>
         </section>
 
