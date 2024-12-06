@@ -29,8 +29,8 @@ export default function RootLayout({
 
   return (
     <html lang="zh-Hant">
-      <title>TREM 擴充</title>
-      <meta name="description" content="TREM 擴充套件一覽" />
+      <title>TREM 臺灣即時地震監測</title>
+      <meta name="description" content="Taiwan Real-time Earthquake Monitoring" />
       <body className="flex min-h-svh flex-col">
         <TooltipProvider>
           <AppHeader />
