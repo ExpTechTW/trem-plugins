@@ -75,7 +75,7 @@ const VersionBadge: React.FC<VersionBadgeProps> = ({ version }) => {
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <div className="flex items-center gap-3">
             <DialogTitle className={`
               text-xl
