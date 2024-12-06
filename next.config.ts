@@ -11,9 +11,15 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   webpack: (config) => {
+    config.module.rules.push({
+      test: /\.md$/,
+      use: 'raw-loader',
+    });
+
     if (isProduction) {
       config.output.publicPath = `${basePath}/_next/`;
     }
+
     return config;
   },
 };

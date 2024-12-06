@@ -1,7 +1,7 @@
 'use client';
 
 import { Download, Loader2Icon } from 'lucide-react';
-import { redirect, usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
@@ -9,6 +9,8 @@ import AnimatedCounter from '@/lib/counter';
 import { Button } from '@/components/ui/button';
 import PackageSizeChart from '@/components/size_chart';
 import VersionBadge from '@/components/dialogs/version';
+import ReleaseNotes from '@/components/release_note';
+import { getReleaseContent } from '@/lib/release_note';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';
@@ -172,15 +174,30 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
   const [releases, setReleases] = useState<GithubRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
+  const [releaseContent, setReleaseContent] = useState<string>('');
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const handleVersionChange = (version: string) => {
     setSelectedVersion(version);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.set('version', version);
-    redirect(`${pathname}?${params}`);
+    window.history.pushState({}, '', `${pathname}?${params.toString()}`);
   };
+
+  useEffect(() => {
+    async function loadContent() {
+      if (!selectedVersion) {
+        setReleaseContent('');
+        return;
+      }
+
+      const content = await getReleaseContent(selectedVersion);
+      setReleaseContent(content);
+    }
+
+    void loadContent();
+  }, [selectedVersion]);
 
   useEffect(() => {
     const detected = getSystemInfo();
@@ -204,8 +221,11 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
 
         if (cachedData && lastFetch && now - parseInt(lastFetch) < CACHE_DURATION) {
           const parsed = JSON.parse(cachedData) as GithubRelease[];
+          const version = getFirstStableVersion(parsed);
           setReleases(parsed);
-          setSelectedVersion(getFirstStableVersion(parsed));
+          const content = await getReleaseContent(selectedVersion);
+          setReleaseContent(content);
+          setSelectedVersion(version);
           setLoading(false);
           return;
         }
@@ -218,15 +238,20 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
 
         const data = (await response.json()) as GithubRelease[];
         const recentReleases = data.slice(0, MAX_RELEASES);
+        const version = getFirstStableVersion(recentReleases);
 
         localStorage.setItem('tremReleases', JSON.stringify(recentReleases));
         localStorage.setItem('lastReleasesFetch', now.toString());
 
         setReleases(recentReleases);
-        setSelectedVersion(getFirstStableVersion(recentReleases));
+        setSelectedVersion(version);
+        const content = await getReleaseContent(selectedVersion);
+
+        setReleaseContent(content);
       }
       catch (err) {
         console.error('Failed to fetch releases:', err);
+        setReleaseContent('無法載入更新日誌');
       }
       finally {
         setLoading(false);
@@ -423,6 +448,13 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
           </div>
 
           <div>
+            {releases.length > 0 && selectedVersion && (
+              <ReleaseNotes
+                releases={releases}
+                releaseContent={releaseContent || '載入中...'}
+                initialVersion={selectedVersion}
+              />
+            )}
             {currentRelease && (
               <div className={`
                 rounded-lg border bg-white p-3
