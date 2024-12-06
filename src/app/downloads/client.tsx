@@ -1,7 +1,7 @@
 'use client';
 
 import { Download, Loader2Icon } from 'lucide-react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { redirect, usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
@@ -182,7 +182,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
     setSelectedVersion(version);
     const params = new URLSearchParams(searchParams.toString());
     params.set('version', version);
-    window.history.pushState({}, '', `${pathname}?${params.toString()}`);
+    redirect(`${pathname}?${params}`);
   };
 
   useEffect(() => {
