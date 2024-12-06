@@ -52,11 +52,11 @@ export default function PluginPageClient() {
     setMounted(true);
     async function loadPlugins() {
       try {
-        const cachedPlugins = localStorage.getItem('tremPlugins') ?? '';
-        const lastFetch = Number(localStorage.getItem('lastPluginsFetch') ?? 0);
+        const cachedPlugins = localStorage.getItem('tremPlugins');
+        const lastFetch = localStorage.getItem('lastPluginsFetch');
         const now = Date.now();
 
-        if (cachedPlugins && lastFetch && now - lastFetch < 300000) {
+        if (cachedPlugins && lastFetch && now - parseInt(lastFetch) < 300000) {
           const parsedPlugins = JSON.parse(cachedPlugins) as Plugin[];
           setPlugins(Array.isArray(parsedPlugins) ? parsedPlugins : []);
           setLoading(false);
