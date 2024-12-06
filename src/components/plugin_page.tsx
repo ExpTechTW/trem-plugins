@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Plugin from '@/modal/plugin';
 
-import VersionList from './version_list';
 import ReadmeTab from './readme';
+import VersionList from './version_list';
 
 const PluginPageTab = ({ plugin, allPlugins, version }: { plugin: Plugin; allPlugins: Plugin[];version: string }) => {
   const router = useRouter();

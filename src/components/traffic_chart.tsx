@@ -1,8 +1,8 @@
 'use client';
 
-import { Loader2Icon } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useCallback, useEffect, useState } from 'react';
+import { Loader2Icon } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatTimeString } from '@/lib/utils';

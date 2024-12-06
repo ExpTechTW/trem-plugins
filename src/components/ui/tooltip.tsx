@@ -1,11 +1,11 @@
 'use client';
 
-import { Provider, Root, Trigger, Content, Portal } from '@radix-ui/react-tooltip';
+import { Content, Portal, Provider, Root, Trigger } from '@radix-ui/react-tooltip';
 import { forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import type { ElementRef, ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, ElementRef } from 'react';
 
 const TooltipProvider = Provider;
 

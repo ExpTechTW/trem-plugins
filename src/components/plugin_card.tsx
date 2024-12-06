@@ -1,12 +1,12 @@
-import { SiGithub } from '@icons-pack/react-simple-icons';
 import { CheckCircle, Clock, Download, ShieldCheck, Tag } from 'lucide-react';
+import { SiGithub } from '@icons-pack/react-simple-icons';
 import { useRouter } from 'next/navigation';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
-import GithubPeople from './github_people';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import GithubPeople from './github_people';
 
 import type Plugin from '@/modal/plugin';
 
@@ -28,16 +28,16 @@ export default function PluginCard({ plugin }: Props) {
       className={`
         flex h-full cursor-pointer flex-col
         transition-[color_background-color_border-color]
-        dark:hover:bg-primary/[.08] dark:glow:bg-primary/[.12]
-        glow:border-primary/40 glow:bg-primary/[.08]
-        hover:border-primary/20 hover:bg-primary/[.04]
+        dark:hover:bg-primary/[.08]
+        glow:border-primary glow:bg-primary/[.08]
+        hover:border-primary/40 hover:bg-primary/[.04]
       `}
     >
       <CardHeader>
         <div className="flex justify-between">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-xl font-bold">{plugin.name}</CardTitle>
+              <CardTitle className="text-xl font-bold text-primary">{plugin.name}</CardTitle>
               {isVerified && (
                 <div className="flex translate-y-[1px] items-center gap-2">
                   <CheckCircle
@@ -114,46 +114,6 @@ export default function PluginCard({ plugin }: Props) {
               <span>{formatNumber(plugin.repository.releases.total_downloads)}</span>
             </div>
           </div>
-          {/* {plugin.repository.releases.releases.length > 0
-          && (
-            <div className="flex" onClick={(e) => e.stopPropagation()}>
-              <Button
-                className={plugin.repository.releases.releases.length > 1
-                  ? `rounded-e-none`
-                  : ''}
-                asChild
-              >
-                <a
-                  href={`https://github.com/${plugin.repository.full_name}/releases/latest/download/${plugin.name}.trem`}
-                  download
-                >
-                  下載
-                </a>
-              </Button>
-              {plugin.repository.releases.releases.length > 1
-              && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" className="w-6 rounded-s-none">
-                      <ChevronDown size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {plugin.repository.releases.releases.map((release) => (
-                      <DropdownMenuItem key={release.tag_name} asChild>
-                        <a
-                          href={`https://github.com/${plugin.repository.full_name}/releases/download/${release.tag_name}/${plugin.name}.trem`}
-                          download
-                        >
-                          {release.tag_name}
-                        </a>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          )} */}
         </div>
       </CardFooter>
     </Card>

@@ -7,8 +7,8 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import AnimatedCounter from '@/lib/counter';
 import { Button } from '@/components/ui/button';
-import VersionBadge from '@/components/dialogs/version';
 import PackageSizeChart from '@/components/size_chart';
+import VersionBadge from '@/components/dialogs/version';
 
 interface SystemInfo {
   os: 'windows' | 'mac' | 'linux' | 'unknown';

@@ -1,13 +1,10 @@
 import React from 'react';
 
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
 import { TabsContent } from '@/components/ui/tabs';
-import { formatNumber } from '@/lib/utils';
 import VersionBadge from '@/components/dialogs/version';
+import { formatNumber } from '@/lib/utils';
 
 import type Plugin from '@/modal/plugin';
 import type Release from '@/modal/release';

@@ -1,37 +1,20 @@
 'use client';
 
-import { SiGithub } from '@icons-pack/react-simple-icons';
-import {
-  CheckCircle,
-  Clock,
-  Download,
-  Lock,
-  RefreshCw,
-  Shield,
-  ShieldCheck,
-  Star,
-  Tag,
-} from 'lucide-react';
-import Link from 'next/link';
+import { CheckCircle, Clock, Download, Lock, RefreshCw, Shield, ShieldCheck, Star, Tag } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { SiGithub } from '@icons-pack/react-simple-icons';
 
-import ActivityHeatmap from '@/components/activity_chart';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
+import ActivityHeatmap from '@/components/activity_chart';
 import GithubPeople from '@/components/github_people';
 import { InstallButtons } from '@/components/install';
 import PluginPageTab from '@/components/plugin_page';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import UnsafePluginWarning from '@/components/dialogs/warn';
-import { formatNumber, formatTimeString, getRelativeTime } from '@/lib/utils';
 
 import type Plugin from '@/modal/plugin';
 
