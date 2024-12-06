@@ -1,0 +1,137 @@
+name: Update Oldest Repository Stats
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  update-oldest:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pytz
+
+      - name: Update oldest repository stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          python - <<EOF
+          import json
+          import os
+          import requests
+          from datetime import datetime
+          from pytz import timezone
+
+          def get_repo_stats(owner, repo, plugin_info):
+              headers = {
+                  "Authorization": f"token {os.environ.get('GITHUB_TOKEN')}",
+                  "Accept": "application/vnd.github.v3+json"
+              }
+              base_url = f"https://api.github.com/repos/{owner}/{repo}"
+
+              repo_response = requests.get(base_url, headers=headers)
+              if repo_response.status_code != 200:
+                  print(f"Failed to get repo info: {repo_response.status_code}")
+                  return None
+
+              repo_data = repo_response.json()
+
+              releases_response = requests.get(f"{base_url}/releases", headers=headers)
+              releases = releases_response.json() if releases_response.status_code == 200 else []
+
+              total_downloads = 0
+              release_stats = []
+              for release in releases:
+                  release_downloads = sum(asset["download_count"] for asset in release["assets"])
+                  release_stats.append({
+                      "tag_name": release["tag_name"],
+                      "name": release["name"],
+                      "downloads": release_downloads,
+                      "published_at": release["published_at"]
+                  })
+                  total_downloads += release_downloads
+
+              return {
+                  "repository": {
+                      "full_name": repo_data["full_name"],
+                      "releases": {
+                          "total_count": len(releases),
+                          "total_downloads": total_downloads,
+                          "releases": release_stats
+                      }
+                  }
+              }
+
+          try:
+              stats_file = "data/repository_stats.json"
+              
+              if not os.path.exists(stats_file):
+                  print("Repository stats file not found")
+                  exit(0)
+
+              with open(stats_file, "r", encoding="utf-8") as f:
+                  repository_stats = json.load(f)
+
+              if not repository_stats:
+                  print("No repository stats found")
+                  exit(0)
+
+              # 取得最後一筆資料
+              oldest_record = repository_stats[-1]
+              
+              if "link" in oldest_record and "github.com" in oldest_record["link"]:
+                  parts = oldest_record["link"].strip("/").split("/")
+                  if len(parts) >= 2:
+                      owner, repo = parts[-2], parts[-1]
+                      print(f"更新倉庫狀態: {owner}/{repo}")
+                      
+                      stats = get_repo_stats(owner, repo, oldest_record)
+                      if stats:
+                          now = datetime.now(timezone("Asia/Taipei")).strftime("%Y-%m-%d %H:%M:%S")
+                          oldest_record["repository"] = stats["repository"]
+                          oldest_record["updated_at"] = now
+                          
+                          # 重新排序
+                          repository_stats.pop()
+                          repository_stats.append(oldest_record)
+                          repository_stats.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
+                          
+                          with open(stats_file, "w", encoding="utf-8") as f:
+                              json.dump(repository_stats, f, ensure_ascii=False, separators=(',', ':'))
+                          
+                          print(f"成功更新倉庫資料: {oldest_record['name']}")
+                      else:
+                          print(f"無法獲取倉庫資料: {owner}/{repo}")
+                  else:
+                      print("Invalid repository link format")
+              else:
+                  print("No valid repository link found in the oldest record")
+
+          except Exception as e:
+              print(f"發生錯誤: {str(e)}")
+              raise
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/repository_stats.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update oldest repository statistics [skip ci]" && git push)
