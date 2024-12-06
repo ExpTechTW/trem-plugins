@@ -65,7 +65,18 @@ const getSystemInfo = (): SystemInfo => {
   let os: SystemInfo['os'] = 'unknown';
   let arch: SystemInfo['arch'] = 'unknown';
 
-  if (platform.includes('mac')) {
+  const isIPad = Boolean(
+    userAgent.includes('ipad')
+    || (navigator.maxTouchPoints > 1
+      && platform.includes('mac')
+      && !userAgent.includes('iphone')),
+  );
+
+  if (isIPad) {
+    os = 'unknown';
+    arch = 'unknown';
+  }
+  else if (platform.includes('mac')) {
     os = 'mac';
     arch = navigator.userAgent.includes('Mac') && navigator.userAgent.includes('Apple') ? 'arm64' : 'x64';
   }
