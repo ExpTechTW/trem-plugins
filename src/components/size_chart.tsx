@@ -1,5 +1,7 @@
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import React, { useState } from 'react';
+'use client';
+
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import React, { useEffect, useState } from 'react';
 
 interface Release {
   tag_name: string;
@@ -58,18 +60,30 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 };
 
 const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
+  const [isMobile, setIsMobile] = useState(false);
   const colors: Record<string, string> = {
-    'Linux AMD64': '#FF6B6B', // Coral Red
-    'Linux ARM64': '#4ECDC4', // Turquoise
-    'macOS ARM64': '#45B7D1', // Sky Blue
-    'macOS Intel': '#96CEB4', // Sage Green
-    'Windows x86': '#9B5DE5', // Purple
-    'Windows x64': '#F7D794', // Muted Yellow
+    'Linux AMD64': '#FF6B6B',
+    'Linux ARM64': '#4ECDC4',
+    'macOS ARM64': '#45B7D1',
+    'macOS Intel': '#96CEB4',
+    'Windows x86': '#9B5DE5',
+    'Windows x64': '#F7D794',
   };
 
   const [visibleTypes, setVisibleTypes] = useState<Record<string, boolean>>(
     Object.keys(colors).reduce((acc, type) => ({ ...acc, [type]: true }), {}),
   );
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   const processData = (): ChartData[] => {
     return releases.map((release) => {
@@ -116,7 +130,6 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
     <div className="w-full p-4">
       <h2 className="mb-6 text-center text-xl font-semibold">安裝包大小趨勢圖</h2>
 
-      {/* Toggle buttons */}
       <div className="mb-6 flex flex-wrap justify-center gap-2">
         {packageTypes.map((type) => (
           <button
@@ -140,7 +153,6 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
         ))}
       </div>
 
-      {/* Chart */}
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
@@ -148,7 +160,7 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
             margin={{
               top: 20,
               right: 30,
-              left: 20,
+              left: isMobile ? 0 : 20,
               bottom: 60,
             }}
           >
@@ -167,16 +179,18 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
               stroke="#666"
             />
             <YAxis
-              label={{
-                value: '檔案大小 (MB)',
-                angle: -90,
-                position: 'insideLeft',
-                style: {
-                  textAnchor: 'middle',
-                  fill: '#666',
-                  fontSize: 14,
-                },
-              }}
+              label={isMobile
+                ? { value: '' }
+                : {
+                    value: '檔案大小 (MB)',
+                    angle: -90,
+                    position: 'insideLeft',
+                    style: {
+                      textAnchor: 'middle',
+                      fill: '#666',
+                      fontSize: 14,
+                    },
+                  }}
               tick={{ fontSize: 12 }}
               stroke="#666"
             />
@@ -190,12 +204,12 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
                   stroke={colors[type]}
                   strokeWidth={2}
                   dot={{
-                    r: 4,
+                    r: isMobile ? 3 : 4,
                     strokeWidth: 2,
                     fill: '#fff',
                   }}
                   activeDot={{
-                    r: 6,
+                    r: isMobile ? 4 : 6,
                     stroke: colors[type],
                     strokeWidth: 2,
                     fill: '#fff',
