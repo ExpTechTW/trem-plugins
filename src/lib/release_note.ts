@@ -1,8 +1,17 @@
+const isProduction = process.env.NODE_ENV === 'production';
+const basePath = isProduction ? '/trem-plugins' : '';
+const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/ExpTechTW/trem-plugins/main/public';
+
 const getReleaseNoteContent = async (version: string) => {
   if (!version) return null;
   try {
     const normalizedVersion = version.replace(/^v/, '');
-    const response = await fetch(`/releases/${normalizedVersion}.md`);
+
+    const baseUrl = isProduction
+      ? `${GITHUB_RAW_URL}/releases`
+      : `${basePath}/releases`;
+
+    const response = await fetch(`${baseUrl}/${normalizedVersion}.md`);
 
     if (!response.ok) {
       console.log(`Failed to load release notes for ${version}: ${response.statusText}`);
