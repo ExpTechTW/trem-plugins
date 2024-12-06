@@ -28,16 +28,26 @@ export const usePluginStore = create(
         });
       },
       async fetch() {
-        const response = await fetch(PluginDataRepoUrl);
+        let cachedPlugins = localStorage.getItem('tremPlugins') ?? '';
+        const lastFetch = Number(localStorage.getItem('lastPluginsFetch') ?? 0);
 
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}: ${await response.text()}`);
+        const now = Date.now();
+
+        if (!cachedPlugins || now - lastFetch > 300_000) {
+          const response = await fetch(PluginDataRepoUrl);
+
+          if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}: ${await response.text()}`);
+          }
+
+          cachedPlugins = JSON.stringify(await response.json() as Promise<object>);
+
+          localStorage.setItem('tremPlugins', cachedPlugins);
+          localStorage.setItem('lastPluginsFetch', now.toString());
         }
 
-        const pluginsData = await response.json() as Promise<object>;
-
         set({
-          plugins: PluginList.parse(pluginsData),
+          plugins: PluginList.parse(JSON.parse(cachedPlugins)),
           lastUpdateTime: Date.now(),
         });
       },
