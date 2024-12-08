@@ -22,7 +22,7 @@ const PluginPageTab = ({ plugin, version }: { plugin: Plugin;version: string }) 
   const handleDependencyClick = (packageName: string) => {
     const targetPlugin = plugins.find((p) => p.name === packageName);
     if (targetPlugin) {
-      router.push(`/plugins/${packageName}`);
+      router.push(`/plugins?name=${packageName}`);
     }
   };
 
@@ -110,7 +110,7 @@ const PluginPageTab = ({ plugin, version }: { plugin: Plugin;version: string }) 
                               w-full cursor-pointer rounded-lg border p-4
                               hover:bg-accent
                             `}
-                            onClick={() => router.push(`/plugins/${dep.name}`)}
+                            onClick={() => router.push(`/plugins?name=${dep.name}`)}
                             role="button"
                             tabIndex={0}
                           >
