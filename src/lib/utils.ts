@@ -52,7 +52,7 @@ export const formatNumber = (n: number) => {
     f = n;
   }
 
-  return ((f * 100) / 100).toString() + u;
+  return ((f * 100) / 100).toFixed(2) + u;
 };
 
 moment.locale('zh-tw');
