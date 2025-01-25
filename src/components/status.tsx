@@ -3,7 +3,7 @@
 import React from 'react';
 
 import AnimatedCounter from '@/lib/counter';
-import { formatNumber } from '@/lib/utils';
+import { formatNumberAll } from '@/lib/utils';
 import { usePluginStore } from '@/stores/plugins';
 
 export interface StatsProps {
@@ -31,7 +31,7 @@ export default function StatsSection() {
       <AnimatedCounter
         end={pluginStore.getTotalDownloads()}
         title="總下載量"
-        formatter={formatNumber}
+        formatter={formatNumberAll}
       />
       <AnimatedCounter
         end={pluginStore.getTotalAuthors()}

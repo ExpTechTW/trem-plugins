@@ -36,7 +36,7 @@ export const getStatusText = (status: string) => {
   }
 };
 
-export const formatNumber = (n: number) => {
+export const formatNumberAll = (n: number) => {
   let f: number;
   let u = '';
 
@@ -53,6 +53,25 @@ export const formatNumber = (n: number) => {
   }
 
   return ((f * 100) / 100).toFixed(2) + u;
+};
+
+export const formatNumber = (n: number) => {
+  let f: number;
+  let u = '';
+
+  if (n >= 1_000) {
+    f = (n / 1_000);
+    u = 'K';
+  }
+  else if (n >= 1_000_000) {
+    f = (n / 1_000_000);
+    u = 'M';
+  }
+  else {
+    f = n;
+  }
+
+  return ((f * 100) / 100).toFixed(0) + u;
 };
 
 moment.locale('zh-tw');
