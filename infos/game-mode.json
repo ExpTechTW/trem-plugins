@@ -1,6 +1,6 @@
 {
   "name": "game-mode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": {
     "zh_tw": "啟用或停用 pip 功能",
     "zh-Hant": "啟用或停用 pip 功能"
