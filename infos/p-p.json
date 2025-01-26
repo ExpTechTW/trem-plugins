@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "author": ["yayacat"],
     "description": {
-        "test": "P2P IPv4 & IPv6 客戶端",
+        "test1": "P2P IPv4 & IPv6 客戶端",
         "zh_tw": "P2P IPv4 & IPv6 客戶端",
         "zh-Hant": "P2P IPv4 & IPv6 客戶端"
     },
