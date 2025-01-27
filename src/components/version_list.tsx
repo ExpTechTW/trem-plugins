@@ -23,7 +23,7 @@ const VersionItem = ({ release, plugin }: { release: Release; plugin: Plugin }) 
         </div>
         <span className="text-sm text-muted-foreground">
           (
-          {new Date(release.published_at).toLocaleDateString('zh-TW')}
+            {release.published_at ? new Date(release.published_at).toLocaleDateString('zh-TW') : ''}
           )
         </span>
       </div>
