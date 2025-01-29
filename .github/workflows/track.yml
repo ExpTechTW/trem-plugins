@@ -1,6 +1,8 @@
 name: Track Repository Stats
 
 on:
+  push:
+    branches: ["fix_track"]
   pull_request:
     types:
       - closed
@@ -104,9 +106,15 @@ jobs:
                       else:
                           rel_path = os.path.relpath(
                               full_path, base_dir).replace('\\', '/')
-                          with open(full_path, 'r', encoding='utf-8') as f:
-                              content = self.normalize_content(f.read())
-                              results[rel_path] = content
+                          try:
+                            with open(full_path, 'r', encoding='utf-8') as f:
+                                content = self.normalize_content(f.read())
+                          except UnicodeDecodeError:
+                            with open(full_path, 'rb') as f:
+                                binary_content = f.read()
+                                content = binary_content.hex()
+
+                          results[rel_path] = content
 
                   return results
 
