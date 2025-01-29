@@ -1,8 +1,6 @@
 name: Track Repository Stats
 
 on:
-  push:
-    branches: ["fix_track"]
   pull_request:
     types:
       - closed
