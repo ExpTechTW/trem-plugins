@@ -90,36 +90,40 @@ jobs:
                   return content.replace('\r\n', '\n').replace('\r', '\n')
 
               def read_file_with_detection(self, file_path: str) -> str:
-                try:
-                    with open(file_path, 'rb') as f:
-                        raw_data = f.read()
+                  try:
+                      if file_path.lower().endswith(('.wav', '.mp3', '.ogg')):
+                          with open(file_path, 'rb') as f:
+                              return f.read().hex()
 
-                    result = chardet.detect(raw_data)
-                    detected_encoding = result['encoding']
-
-                    if not detected_encoding:
-                        detected_encoding = 'utf-8'
-
-                    try:
-                        content = raw_data.decode(detected_encoding)
-                    except UnicodeDecodeError:
-                        fallback_encodings = ['utf-8', 'big5', 'gb18030', 'shift-jis', 'latin1']
-                        for encoding in fallback_encodings:
-                            try:
-                                content = raw_data.decode(encoding)
-                                print(f"Successfully decoded {file_path} with {encoding}")
-                                break
-                            except UnicodeDecodeError:
-                                continue
-                        else:
-                            content = raw_data.decode('utf-8', errors='ignore')
-                            print(f"Warning: Forced decoding {file_path} with utf-8 ignore")
-
-                    return self.normalize_content(content)
-
-                except Exception as e:
-                    print(f"Error reading file {file_path}: {str(e)}")
-                    return ""
+                      with open(file_path, 'rb') as f:
+                          raw_data = f.read()
+              
+                      result = chardet.detect(raw_data)
+                      detected_encoding = result['encoding']
+              
+                      if not detected_encoding:
+                          detected_encoding = 'utf-8'
+              
+                      try:
+                          content = raw_data.decode(detected_encoding)
+                      except UnicodeDecodeError:
+                          fallback_encodings = ['utf-8', 'big5', 'gb18030', 'shift-jis', 'latin1']
+                          for encoding in fallback_encodings:
+                              try:
+                                  content = raw_data.decode(encoding)
+                                  print(f"Successfully decoded {file_path} with {encoding}")
+                                  break
+                              except UnicodeDecodeError:
+                                  continue
+                          else:
+                              content = raw_data.decode('utf-8', errors='ignore')
+                              print(f"Warning: Forced decoding {file_path} with utf-8 ignore")
+              
+                      return self.normalize_content(content)
+              
+                  except Exception as e:
+                      print(f"Error reading file {file_path}: {str(e)}")
+                      return ""
 
               def get_all_files(self, directory: str, base_dir: str = None) -> Dict[str, str]:
                   """獲取目錄下所有文件的內容"""
