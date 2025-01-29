@@ -89,7 +89,7 @@ jobs:
                   """標準化內容的換行符"""
                   return content.replace('\r\n', '\n').replace('\r', '\n')
 
-              def read_file_with_detection(file_path: str) -> str:
+              def read_file_with_detection(self, file_path: str) -> str:
                 try:
                     with open(file_path, 'rb') as f:
                         raw_data = f.read()
