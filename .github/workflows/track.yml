@@ -138,7 +138,7 @@ jobs:
                       else:
                           rel_path = os.path.relpath(
                               full_path, base_dir).replace('\\', '/')
-                          content = read_file_with_detection(full_path)
+                          content = self.read_file_with_detection(full_path)
                           results[rel_path] = content
 
                   return results
