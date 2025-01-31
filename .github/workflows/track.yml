@@ -79,10 +79,6 @@ jobs:
 
             readFileWithDetection(filePath) {
               try {
-                if (/\.(wav|mp3|ogg)$/i.test(filePath)) {
-                  return fs.readFileSync(filePath).toString('hex');
-                }
-
                 const content = fs.readFileSync(filePath, 'utf8');
                 return this.normalizeContent(content);
 
