@@ -182,7 +182,6 @@ jobs:
             console.log(`${Colors.BLUE}Downloading latest release from ${org}/${repo}...${Colors.RESET}`);
 
             try {
-              # 獲取最新release
               const apiUrl = `https://api.github.com/repos/${org}/${repo}/releases/latest`;
               const { data: releaseData } = await axios.get(apiUrl);
 
