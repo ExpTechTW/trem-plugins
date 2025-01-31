@@ -41,278 +41,191 @@ jobs:
           # Save changed files for later use
           echo "$CHANGED_FILES" > changed_files.txt
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          python-version: "3.x"
+          node-version: '18'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install requests python-dateutil pytz cryptography chardet
+          npm install axios fs-extra crypto child_process moment-timezone
 
       - name: Verify plugins
         run: |
-          # Save the verification script
-          cat > verify_plugin.py <<'EOL'
-          import os
-          import json
-          import base64
-          import shutil
-          import requests
-          import tempfile
-          import zipfile
-          import sys
-          import chardet
-          from typing import Dict, Any
-          from cryptography.hazmat.primitives import hashes
-          from cryptography.hazmat.primitives.asymmetric import padding
-          from cryptography.hazmat.primitives.serialization import load_pem_public_key
-          from cryptography.exceptions import InvalidSignature
+          cat > verify_plugin.js <<'EOL'
+          const fs = require('fs-extra');
+          const path = require('path');
+          const axios = require('axios');
+          const crypto = require('crypto');
+          const { execSync } = require('child_process');
 
+          class Colors {
+            static HEADER = '\x1b[95m';
+            static BLUE = '\x1b[94m';
+            static GREEN = '\x1b[92m';
+            static YELLOW = '\x1b[93m';
+            static RED = '\x1b[91m';
+            static RESET = '\x1b[0m';
+          }
 
-          class Colors:
-              HEADER = '\033[95m'
-              BLUE = '\033[94m'
-              GREEN = '\033[92m'
-              YELLOW = '\033[93m'
-              RED = '\033[91m'
-              RESET = '\033[0m'
+          class PluginVerifier {
+            constructor(officialKey) {
+              this.officialKey = officialKey;
+            }
 
+            normalizeContent(content) {
+              return content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            }
 
-          class PluginVerifier:
-              def __init__(self, official_key: str):
-                  self.official_key = official_key
-                  self.public_keys = {}
+            readFileWithDetection(filePath) {
+              try {
+                if (/\.(wav|mp3|ogg)$/i.test(filePath)) {
+                  return fs.readFileSync(filePath).toString('hex');
+                }
 
-              def normalize_content(self, content: str) -> str:
-                  """標準化內容的換行符"""
-                  return content.replace('\r\n', '\n').replace('\r', '\n')
+                const content = fs.readFileSync(filePath, 'utf8');
+                return this.normalizeContent(content);
 
-              def read_file_with_detection(self, file_path: str) -> str:
-                  try:
-                      # 檢查是否為二進制文件
-                      if file_path.lower().endswith(('.wav', '.mp3', '.ogg')):
-                          with open(file_path, 'rb') as f:
-                              return f.read().hex()
-              
-                      # 文本文件處理邏輯保持不變
-                      with open(file_path, 'rb') as f:
-                          raw_data = f.read()
-              
-                      result = chardet.detect(raw_data)
-                      detected_encoding = result['encoding']
-              
-                      if not detected_encoding:
-                          detected_encoding = 'utf-8'
-              
-                      try:
-                          content = raw_data.decode(detected_encoding)
-                      except UnicodeDecodeError:
-                          fallback_encodings = ['utf-8', 'big5', 'gb18030', 'shift-jis', 'latin1']
-                          for encoding in fallback_encodings:
-                              try:
-                                  content = raw_data.decode(encoding)
-                                  print(f"Successfully decoded {file_path} with {encoding}")
-                                  break
-                              except UnicodeDecodeError:
-                                  continue
-                          else:
-                              content = raw_data.decode('utf-8', errors='ignore')
-                              print(f"Warning: Forced decoding {file_path} with utf-8 ignore")
-              
-                      return self.normalize_content(content)
-              
-                  except Exception as e:
-                      print(f"Error reading file {file_path}: {str(e)}")
-                      return ""
+              } catch (err) {
+                console.error(`Error reading file ${filePath}: ${err}`);
+                return '';
+              }
+            }
 
-              def get_all_files(self, directory: str, base_dir: str = None) -> Dict[str, str]:
-                  """獲取目錄下所有文件的內容"""
-                  if base_dir is None:
-                      base_dir = directory
+            getAllFiles(directory, baseDir = null) {
+              if (!baseDir) baseDir = directory;
 
-                  results = {}
+              const results = {};
 
-                  for item in os.listdir(directory):
-                      if item.startswith('.') or item == 'signature.json':
-                          continue
+              fs.readdirSync(directory).forEach(item => {
+                if (item.startsWith('.') || item === 'signature.json') return;
 
-                      full_path = os.path.join(directory, item)
-                      if os.path.isdir(full_path):
-                          results.update(self.get_all_files(full_path, base_dir))
-                      else:
-                          rel_path = os.path.relpath(
-                              full_path, base_dir).replace('\\', '/')
-                          content = self.read_file_with_detection(full_path)
-                          results[rel_path] = content
+                const fullPath = path.join(directory, item);
+                if (fs.statSync(fullPath).isDirectory()) {
+                  Object.assign(results, this.getAllFiles(fullPath, baseDir));
+                } else {
+                  const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
+                  results[relPath] = this.readFileWithDetection(fullPath);
+                }
+              });
 
-                  return results
+              return results;
+            }
 
-              def verify(self, plugin_dir: str) -> Dict[str, Any]:
-                  """驗證插件"""
-                  try:
-                      signature_path = os.path.join(plugin_dir, 'signature.json')
-                      if not os.path.exists(signature_path):
-                          return {"valid": False, "error": "Missing signature.json"}
+            verify(pluginDir) {
+              try {
+                const signaturePath = path.join(pluginDir, 'signature.json');
+                if (!fs.existsSync(signaturePath)) {
+                  return { valid: false, error: 'Missing signature.json' };
+                }
 
-                      with open(signature_path, 'r', encoding='utf-8') as f:
-                          signature_data = json.load(f)
-                          print(f"{Colors.YELLOW}Signature data loaded:{Colors.RESET}")
-                          print(json.dumps(signature_data, indent=2))
+                const signatureData = JSON.parse(fs.readFileSync(signaturePath, 'utf8'));
+                console.log(`${Colors.YELLOW}Signature data loaded:${Colors.RESET}`);
+                console.log(JSON.stringify(signatureData, null, 2));
 
-                      file_hashes = signature_data.get('fileHashes')
-                      signature = signature_data.get('signature')
-                      key_id = signature_data.get('keyId')
+                const { fileHashes, signature, keyId } = signatureData;
 
-                      if not file_hashes or not signature:
-                          return {"valid": False, "error": "Invalid signature data format"}
+                if (!fileHashes || !signature) {
+                  return { valid: false, error: 'Invalid signature data format' };
+                }
 
-                      print(f"\n{Colors.BLUE}Verifying files...{Colors.RESET}")
-                      all_files = self.get_all_files(plugin_dir)
-                      print(f"Found {len(all_files)} files to verify:")
-                      for file_path in sorted(all_files.keys()):
-                          print(f"  {file_path}")
+                console.log(`\n${Colors.BLUE}Verifying files...${Colors.RESET}`);
+                const allFiles = this.getAllFiles(pluginDir);
+                console.log(`Found ${Object.keys(allFiles).length} files to verify:`);
+                Object.keys(allFiles).sort().forEach(file => console.log(`  ${file}`));
 
-                      print(f"\n{Colors.BLUE}Checking file hashes...{Colors.RESET}")
-                      for file_path, content in all_files.items():
-                          if file_path == 'trem.json':
-                              continue
+                console.log(`\n${Colors.BLUE}Checking file hashes...${Colors.RESET}`);
+                for (const [filePath, content] of Object.entries(allFiles)) {
+                  if (filePath === 'trem.json') continue;
 
-                          if file_path not in file_hashes:
-                              return {"valid": False, "error": f"Extra file: {file_path}"}
+                  if (!(filePath in fileHashes)) {
+                    return { valid: false, error: `Extra file: ${filePath}` };
+                  }
 
-                          actual_hash = hashes.Hash(hashes.SHA256())
-                          actual_hash.update(content.encode())
-                          actual_hash_hex = actual_hash.finalize().hex()
+                  const actualHash = crypto.createHash('sha256')
+                    .update(content)
+                    .digest('hex');
 
-                          print(f"File: {file_path}")
-                          print(f"  Expected: {file_hashes[file_path]}")
-                          print(f"  Actual:   {actual_hash_hex}")
+                  console.log(`File: ${filePath}`);
+                  console.log(`  Expected: ${fileHashes[filePath]}`);
+                  console.log(`  Actual:   ${actualHash}`);
 
-                          if actual_hash_hex != file_hashes[file_path]:
-                              return {"valid": False, "error": f"Modified file: {file_path}"}
+                  if (actualHash !== fileHashes[filePath]) {
+                    return { valid: false, error: `Modified file: ${filePath}` };
+                  }
+                }
 
-                      print(f"\n{Colors.BLUE}Verifying signature...{Colors.RESET}")
-                      print(f"Using key ID: {key_id or 'official'}")
+                console.log(`\n${Colors.BLUE}Verifying signature...${Colors.RESET}`);
+                console.log(`Using key ID: ${keyId || 'official'}`);
 
-                      message = json.dumps(file_hashes, sort_keys=True,
-                                         separators=(',', ':')).encode()
-                      signature_bytes = base64.b64decode(signature)
+                const message = Buffer.from(JSON.stringify(fileHashes, Object.keys(fileHashes).sort()));
+                const signatureBuffer = Buffer.from(signature, 'base64');
 
-                      print(f"Message length: {len(message)} bytes")
-                      print(f"Signature length: {len(signature_bytes)} bytes")
-                      print(f"Message (first 100 bytes): {message[:100]}...")
+                const verify = crypto.createVerify('SHA256');
+                verify.update(message);
+                const isValid = verify.verify(this.officialKey, signatureBuffer);
 
-                      public_key_obj = load_pem_public_key(self.official_key.encode())
-                      public_key_obj.verify(
-                          signature_bytes,
-                          message,
-                          padding.PKCS1v15(),
-                          hashes.SHA256()
-                      )
-                      return {
-                          "valid": True,
-                          "error": None,
-                          "keyId": key_id or 'official'
-                      }
-                  except InvalidSignature:
-                      # 嘗試不同的序列化方式
-                      print(
-                          f"{Colors.YELLOW}First attempt failed, trying alternative serialization...{Colors.RESET}")
-                      message = json.dumps(file_hashes, separators=(',', ':')).encode()
-                      try:
-                          public_key_obj.verify(
-                              signature_bytes,
-                              message,
-                              padding.PKCS1v15(),
-                              hashes.SHA256()
-                          )
-                          return {
-                              "valid": True,
-                              "error": None,
-                              "keyId": key_id or 'official'
-                          }
-                      except InvalidSignature:
-                          print(f"{Colors.RED}Signature verification details:{Colors.RESET}")
-                          print("- File hashes match but signature is invalid")
-                          print("- This could mean:")
-                          print("  1. The signature was created with a different private key")
-                          print("  2. The file hash data was serialized differently")
-                          print("  3. The signature was generated with different parameters")
-                          return {
-                              "valid": False,
-                              "error": "Invalid signature",
-                              "keyId": key_id or 'official'
-                          }
+                if (isValid) {
+                  return { valid: true, error: null, keyId: keyId || 'official' };
+                }
 
-                  except Exception as e:
-                      print(f"{Colors.RED}Verification error: {str(e)}{Colors.RESET}")
-                      return {"valid": False, "error": str(e)}
+                return { valid: false, error: 'Invalid signature', keyId: keyId || 'official' };
 
+              } catch (err) {
+                console.error(`${Colors.RED}Verification error: ${err}${Colors.RESET}`);
+                return { valid: false, error: err.message };
+              }
+            }
+          }
 
-          def download_and_verify_plugin(org: str, repo: str, plugin_name: str, verifier: PluginVerifier):
-              """下載並驗證插件"""
-              print(f"{Colors.BLUE}Downloading latest release from {org}/{repo}...{Colors.RESET}")
+          async function downloadAndVerifyPlugin(org, repo, pluginName, verifier) {
+            console.log(`${Colors.BLUE}Downloading latest release from ${org}/${repo}...${Colors.RESET}`);
 
-              try:
-                  # 獲取最新release
-                  api_url = f"https://api.github.com/repos/{org}/{repo}/releases/latest"
-                  response = requests.get(api_url)
-                  response.raise_for_status()
-                  release_data = response.json()
+            try {
+              # 獲取最新release
+              const apiUrl = `https://api.github.com/repos/${org}/${repo}/releases/latest`;
+              const { data: releaseData } = await axios.get(apiUrl);
 
-                  # 下載插件
-                  trem_file = f"{plugin_name}.trem"
-                  asset_url = None
-                  for asset in release_data["assets"]:
-                      if asset["name"] == trem_file:
-                          asset_url = asset["browser_download_url"]
-                          break
+              const tremFile = `${pluginName}.trem`;
+              const asset = releaseData.assets.find(a => a.name === tremFile);
 
-                  if not asset_url:
-                      raise ValueError(f"Could not find {trem_file} in latest release")
+              if (!asset) {
+                throw new Error(`Could not find ${tremFile} in latest release`);
+              }
 
-                  # 下載並解壓
-                  response = requests.get(asset_url)
-                  response.raise_for_status()
+              const response = await axios.get(asset.browser_download_url, {
+                responseType: 'arraybuffer'
+              });
 
-                  temp_dir = tempfile.mkdtemp()
-                  trem_path = os.path.join(temp_dir, trem_file)
+              const tempDir = fs.mkdtempSync('plugin-');
+              const tremPath = path.join(tempDir, tremFile);
+              const pluginDir = path.join(tempDir, 'plugin');
 
-                  with open(trem_path, "wb") as f:
-                      f.write(response.content)
+              fs.writeFileSync(tremPath, response.data);
+              console.log(`${Colors.GREEN}Downloaded ${tremFile}${Colors.RESET}`);
 
-                  print(f"{Colors.GREEN}Downloaded {trem_file}{Colors.RESET}")
+              fs.mkdirSync(pluginDir, { recursive: true });
+              execSync(`unzip ${tremPath} -d ${pluginDir}`);
 
-                  # 解壓縮
-                  plugin_dir = os.path.join(temp_dir, "plugin")
-                  os.makedirs(plugin_dir, exist_ok=True)
+              const result = verifier.verify(pluginDir);
 
-                  with zipfile.ZipFile(trem_path, 'r') as zip_ref:
-                      zip_ref.extractall(plugin_dir)
+              fs.removeSync(tempDir);
 
-                          # 驗證
-                  result = verifier.verify(plugin_dir)
+              if (result.valid) {
+                console.log(`${Colors.GREEN}Plugin verification successful!${Colors.RESET}`);
+                return true;
+              } else {
+                console.log(`${Colors.RED}Plugin verification failed: ${result.error}${Colors.RESET}`);
+                return false;
+              }
 
-                  if result["valid"]:
-                      print(f"{Colors.GREEN}Plugin verification successful!{Colors.RESET}")
-                      return True
-                  else:
-                      print(f"{Colors.RED}Plugin verification failed: {result['error']}{Colors.RESET}")
-                      return False
+            } catch (err) {
+              console.error(`${Colors.RED}Error: ${err}${Colors.RESET}`);
+              return false;
+            }
+          }
 
-                  # 清理臨時文件
-                  shutil.rmtree(temp_dir)
-
-              except Exception as e:
-                  print(f"{Colors.RED}Error: {str(e)}{Colors.RESET}")
-                  return False
-
-
-          # 使用示例
-          if __name__ == "__main__":
-              public_key = '''-----BEGIN PUBLIC KEY-----
+          const publicKey = `-----BEGIN PUBLIC KEY-----
           MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzQn1ouv0mfzVKJevJiq+
           6rV9mwCEvQpauQ2QNjy4TiwhqzqNiOPwpM3qo+8+3Ld+DUhzZzSzyx894dmJGlWQ
           wNss9Vs5/gnuvn6PurNXC42wkxY6Dmsnp/M6g08iqGXVcM6ZWmvCZ3BzBvwExxRR
@@ -320,34 +233,35 @@ jobs:
           6nDBZxZUCwFD7Zh6RePg07JDbO5fI/UYrqZYyDPK8w9xdXtke9LbdXmMuuk/x57h
           foRArUkhPvUk/77mxo4++3EFnTUxYMnQVuMkDaYNRu7w83abUuhsjNlL/es24HSm
           lwIDAQAB
-          -----END PUBLIC KEY-----'''
+          -----END PUBLIC KEY-----`;
 
-          if len(sys.argv) != 4:
-              print(f"Usage: {sys.argv[0]} <org> <repo> <plugin_name>")
-              sys.exit(1)
+          if (process.argv.length !== 5) {
+            console.log(`Usage: ${process.argv[1]} <org> <repo> <plugin_name>`);
+            process.exit(1);
+          }
 
-          verifier = PluginVerifier(public_key)
-          success = download_and_verify_plugin(sys.argv[1], sys.argv[2], sys.argv[3], verifier)
-          sys.exit(0 if success else 1)
+          const verifier = new PluginVerifier(publicKey);
+          downloadAndVerifyPlugin(process.argv[2], process.argv[3], process.argv[4], verifier)
+            .then(success => process.exit(success ? 0 : 1));
           EOL
 
           # Read and process each changed JSON file
           while IFS= read -r file; do
             if [[ $file == infos/* ]] && [[ $file == *.json ]]; then
               echo "Processing $file..."
-              
+
               # Extract plugin info from JSON
               PLUGIN_NAME=$(jq -r '.name' "$file")
               REPO_LINK=$(jq -r '.link' "$file")
-              
+
               # Parse GitHub org and repo from link
               if [[ $REPO_LINK =~ github.com/([^/]+)/([^/]+)$ ]]; then
                 ORG="${BASH_REMATCH[1]}"
                 REPO="${BASH_REMATCH[2]}"
-                
+
                 echo "Verifying plugin: $PLUGIN_NAME from $ORG/$REPO"
-                python verify_plugin.py "$ORG" "$REPO" "$PLUGIN_NAME"
-                
+                node verify_plugin.js "$ORG" "$REPO" "$PLUGIN_NAME"
+
                 if [ $? -ne 0 ]; then
                   echo "Plugin verification failed for $PLUGIN_NAME"
                   exit 1
@@ -363,150 +277,167 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          python - <<EOF
-          import json
-          import os
-          import requests
-          import subprocess
-          from datetime import datetime
-          from pytz import timezone
-          from operator import itemgetter
+          cat > fetch_stats.js <<'EOL'
+          const fs = require('fs-extra');
+          const axios = require('axios');
+          const { execSync } = require('child_process');
+          const moment = require('moment-timezone');
 
-          def get_changed_files():
-              base_sha = "${{ github.event.pull_request.base.sha }}"
-              head_sha = "${{ github.event.pull_request.head.sha }}"
-              cmd = f"git diff --name-only {base_sha} {head_sha}"
-              result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-              return [f for f in result.stdout.strip().split('\n') if f.startswith('infos/') and f.endswith('.json')]
+          async function getChangedFiles() {
+            const baseSha = process.env.GITHUB_EVENT_PULL_REQUEST_BASE_SHA;
+            const headSha = process.env.GITHUB_EVENT_PULL_REQUEST_HEAD_SHA;
+            const cmd = `git diff --name-only ${baseSha} ${headSha}`;
+            const result = execSync(cmd).toString();
+            return result.trim().split('\n').filter(f => f.startsWith('infos/') && f.endsWith('.json'));
+          }
 
-          def get_repo_stats(owner, repo, plugin_info):
-              headers = {
-                  "Authorization": f"token {os.environ.get('GITHUB_TOKEN')}",
-                  "Accept": "application/vnd.github.v3+json"
-              }
-              base_url = f"https://api.github.com/repos/{owner}/{repo}"
+          async function getRepoStats(owner, repo, pluginInfo) {
+            const headers = {
+              Authorization: `token ${process.env.GITHUB_TOKEN}`,
+              Accept: 'application/vnd.github.v3+json'
+            };
 
-              repo_response = requests.get(base_url, headers=headers)
-              if repo_response.status_code != 200:
-                  print(f"Failed to get repo info: {repo_response.status_code}")
-                  return None
+            try {
+              const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
+              const [repoResponse, releasesResponse] = await Promise.all([
+                axios.get(baseUrl, { headers }),
+                axios.get(`${baseUrl}/releases`, { headers })
+              ]);
 
-              repo_data = repo_response.json()
-
-              releases_response = requests.get(f"{base_url}/releases", headers=headers)
-              releases = releases_response.json() if releases_response.status_code == 200 else []
-
-              total_downloads = 0
-              release_stats = []
-              for release in releases:
-                  release_downloads = sum(asset["download_count"] for asset in release["assets"])
-                  release_stats.append({
-                      "tag_name": release["tag_name"],
-                      "name": release["name"],
-                      "downloads": release_downloads,
-                      "published_at": release["published_at"]
-                  })
-                  total_downloads += release_downloads
+              const releases = releasesResponse.data;
+              let totalDownloads = 0;
+              const releaseStats = releases.map(release => {
+                const downloads = release.assets.reduce((sum, asset) => sum + asset.download_count, 0);
+                totalDownloads += downloads;
+                return {
+                  tag_name: release.tag_name,
+                  name: release.name,
+                  downloads,
+                  published_at: release.published_at
+                };
+              });
 
               return {
-                  "name": plugin_info["name"],
-                  "version": plugin_info["version"],
-                  "description": plugin_info["description"],
-                  "author": plugin_info["author"],
-                  "dependencies": plugin_info.get("dependencies", {}),
-                  "resources": plugin_info.get("resources", []),
-                  "link": plugin_info["link"],
-                  "repository": {
-                      "full_name": repo_data["full_name"],
-                      "releases": {
-                          "total_count": len(releases),
-                          "total_downloads": total_downloads,
-                          "releases": release_stats
-                      }
+                name: pluginInfo.name,
+                version: pluginInfo.version,
+                description: pluginInfo.description,
+                author: pluginInfo.author,
+                dependencies: pluginInfo.dependencies || {},
+                resources: pluginInfo.resources || [],
+                link: pluginInfo.link,
+                repository: {
+                  full_name: repoResponse.data.full_name,
+                  releases: {
+                    total_count: releases.length,
+                    total_downloads: totalDownloads,
+                    releases: releaseStats
                   }
+                }
+              };
+
+            } catch (err) {
+              console.error(`無法取得倉庫訊息: ${err.message}`);
+              return null;
+            }
+          }
+
+          async function processPluginFiles(repositoryStats, changedInfoFiles) {
+            const now = moment().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
+
+            let oldestIndex = null;
+            let oldestTime = null;
+            repositoryStats.forEach((obj, i) => {
+              const currentTime = obj.updated_at || '';
+              if (!oldestTime || currentTime < oldestTime) {
+                oldestTime = currentTime;
+                oldestIndex = i;
+              }
+            });
+
+            for (const filePath of changedInfoFiles) {
+              try {
+                const pluginInfo = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                if (pluginInfo.link && pluginInfo.link.includes('github.com') && pluginInfo.name) {
+                  const parts = pluginInfo.link.trim('/').split('/');
+                  if (parts.length >= 2) {
+                    const [owner, repo] = parts.slice(-2);
+                    console.log(`處理倉庫: ${owner}/${repo} (${pluginInfo.name})`);
+
+                    const stats = await getRepoStats(owner, repo, pluginInfo);
+                    if (stats) {
+                      stats.updated_at = now;
+
+                      const existingIndex = repositoryStats.findIndex(obj => obj.name === stats.name);
+                      if (existingIndex >= 0) {
+                        repositoryStats[existingIndex] = stats;
+                        console.log(`更新倉庫數據: ${stats.name}`);
+                      } else {
+                        repositoryStats.push(stats);
+                        console.log(`新增倉庫數據: ${stats.name}`);
+                      }
+                    }
+                  }
+                }
+              } catch (err) {
+                console.error(`處理 ${filePath} 時發生錯誤: ${err.message}`);
+              }
+            }
+
+            if (oldestIndex !== null) {
+              const oldestRecord = repositoryStats[oldestIndex];
+              if (oldestRecord.link && oldestRecord.link.includes('github.com')) {
+                const parts = oldestRecord.link.trim('/').split('/');
+                if (parts.length >= 2) {
+                  const [owner, repo] = parts.slice(-2);
+                  const stats = await getRepoStats(owner, repo, oldestRecord);
+                  if (stats) {
+                    oldestRecord.repository = stats.repository;
+                    oldestRecord.updated_at = now;
+                    console.log(`更新最舊的倉庫狀態: ${oldestRecord.name}`);
+                  }
+                }
+              }
+            }
+
+            return repositoryStats;
+          }
+
+          async function main() {
+            try {
+              console.log('初始化資料...');
+              fs.mkdirpSync('data');
+
+              const changedInfoFiles = await getChangedFiles();
+
+              if (changedInfoFiles.length === 0) {
+                console.log('No plugin info files were changed in this PR');
+                process.exit(0);
               }
 
-          def process_plugin_files(repository_stats, changed_info_files):
-              now = datetime.now(timezone("Asia/Taipei")).strftime("%Y-%m-%d %H:%M:%S")
+              const statsFile = 'data/repository_stats.json';
+              let repositoryStats = [];
+              if (fs.existsSync(statsFile)) {
+                repositoryStats = JSON.parse(fs.readFileSync(statsFile, 'utf8'));
+              }
 
-              oldest_index = None
-              oldest_time = None
-              for i, obj in enumerate(repository_stats):
-                  current_time = obj.get("updated_at", "")
-                  if oldest_time is None or current_time < oldest_time:
-                      oldest_time = current_time
-                      oldest_index = i
+              repositoryStats = await processPluginFiles(repositoryStats, changedInfoFiles);
 
-              for file_path in changed_info_files:
-                  try:
-                      with open(file_path, "r", encoding="utf-8") as f:
-                          plugin_info = json.load(f)
-                          if "link" in plugin_info and "github.com" in plugin_info["link"] and "name" in plugin_info:
-                              parts = plugin_info["link"].strip("/").split("/")
-                              if len(parts) >= 2:
-                                  owner, repo = parts[-2], parts[-1]
-                                  print(f"處理倉庫: {owner}/{repo} ({plugin_info['name']})")
-                                  
-                                  stats = get_repo_stats(owner, repo, plugin_info)
-                                  if stats:
-                                      stats["updated_at"] = now
-                                      
-                                      for i, obj in enumerate(repository_stats):
-                                          if obj["name"] == stats["name"]:
-                                              repository_stats[i] = stats
-                                              print(f"更新倉庫數據: {stats['name']}")
-                                              break
-                                      else:
-                                          repository_stats.append(stats)
-                                          print(f"新增倉庫數據: {stats['name']}")
+              repositoryStats.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
 
-                  except Exception as e:
-                      print(f"處理 {file_path} 時發生錯誤: {str(e)}")
-                      continue
-              
-              if oldest_index is not None:
-                  oldest_record = repository_stats[oldest_index]
-                  if "link" in oldest_record and "github.com" in oldest_record["link"]:
-                      parts = oldest_record["link"].strip("/").split("/")
-                      if len(parts) >= 2:
-                          owner, repo = parts[-2], parts[-1]
-                          stats = get_repo_stats(owner, repo, oldest_record)
-                          if stats:
-                              oldest_record["repository"] = stats["repository"]
-                              oldest_record["updated_at"] = now
-                              print(f"更新最舊的倉庫狀態: {oldest_record['name']}")
+              fs.writeFileSync(statsFile, JSON.stringify(repositoryStats, null, 0));
 
-              return repository_stats
+              console.log('數據更新完成！');
 
-          try:
-              print("初始化資料...")
-              os.makedirs("data", exist_ok=True)
+            } catch (err) {
+              console.error(`發生錯誤: ${err.message}`);
+              process.exit(1);
+            }
+          }
 
-              changed_info_files = get_changed_files()
-              
-              if not changed_info_files:
-                  print("No plugin info files were changed in this PR")
-                  exit(0)
+          main();
+          EOL
 
-              stats_file = "data/repository_stats.json"
-              repository_stats = []
-              if os.path.exists(stats_file):
-                  with open(stats_file, "r", encoding="utf-8") as f:
-                      repository_stats = json.load(f)
-
-              repository_stats = process_plugin_files(repository_stats, changed_info_files)
-
-              repository_stats.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
-
-              with open(stats_file, "w", encoding="utf-8") as f:
-                  json.dump(repository_stats, f, ensure_ascii=False, separators=(',', ':'))
-
-              print("數據更新完成！")
-
-          except Exception as e:
-              print(f"發生錯誤: {str(e)}")
-              raise
-          EOF
+          node fetch_stats.js
 
       - name: Commit and push changes
         run: |
