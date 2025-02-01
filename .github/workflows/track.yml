@@ -154,12 +154,11 @@ jobs:
                 console.log(`\n${Colors.BLUE}Verifying signature...${Colors.RESET}`);
                 console.log(`Using key ID: ${keyId || 'official'}`);
 
-                const message = Buffer.from(JSON.stringify(fileHashes, Object.keys(fileHashes).sort()));
-                const signatureBuffer = Buffer.from(signature, 'base64');
-
                 const verify = crypto.createVerify('SHA256');
-                verify.update(message);
-                const isValid = verify.verify(this.officialKey, signatureBuffer);
+                verify.write(JSON.stringify(fileHashes));
+                verify.end();
+
+                const isValid = verify.verify(this.officialKey, signature, 'base64');
 
                 if (isValid) {
                   return { valid: true, error: null, keyId: keyId || 'official' };
