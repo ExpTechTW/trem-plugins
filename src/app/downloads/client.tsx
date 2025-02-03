@@ -37,7 +37,6 @@ interface DownloadStats {
 }
 
 const CACHE_DURATION = 1000 * 60 * 60;
-const MAX_RELEASES = 5;
 
 const formatFileSize = (bytes: number): string => {
   const mb = bytes / (1024 * 1024);
@@ -237,13 +236,12 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
         if (!response.ok) throw new Error('無法取得版本資訊');
 
         const data = (await response.json()) as GithubRelease[];
-        const recentReleases = data.slice(0, MAX_RELEASES);
-        const version = getFirstStableVersion(recentReleases);
+        const version = getFirstStableVersion(data);
 
-        localStorage.setItem('tremReleases', JSON.stringify(recentReleases));
+        localStorage.setItem('tremReleases', JSON.stringify(data));
         localStorage.setItem('lastReleasesFetch', now.toString());
 
-        setReleases(recentReleases);
+        setReleases(data);
         setSelectedVersion(version);
         const content = await getReleaseContent(selectedVersion);
 
