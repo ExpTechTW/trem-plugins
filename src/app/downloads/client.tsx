@@ -96,14 +96,14 @@ const getSystemInfo = (): SystemInfo => {
 const getSystemLabel = (systemInfo: SystemInfo): string => {
   const labels: Record<SystemInfo['os'], Record<SystemInfo['arch'], string>> = {
     mac: {
-      arm64: 'macOS (Apple Silicon)',
-      x64: 'macOS (Intel)',
+      arm64: 'macOS (arm64)',
+      x64: 'macOS (x64)',
       i32: '未知系統',
       unknown: '未知系統',
     },
     windows: {
-      x64: 'Windows (X64)',
-      i32: 'Windows (x86)',
+      x64: 'Windows (x64)',
+      i32: 'Windows (i32)',
       arm64: '未知系統',
       unknown: '未知系統',
     },

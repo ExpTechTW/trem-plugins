@@ -15,11 +15,11 @@ interface Release {
 
 interface ChartData {
   'version': string;
-  'Linux AMD64'?: number;
-  'Linux ARM64'?: number;
-  'macOS ARM64'?: number;
-  'macOS Intel'?: number;
-  'Windows x86'?: number;
+  'Linux amd64'?: number;
+  'Linux arm64'?: number;
+  'macOS arm64'?: number;
+  'macOS x64'?: number;
+  'Windows ia32'?: number;
   'Windows x64'?: number;
 }
 
@@ -62,11 +62,11 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
   const [isMobile, setIsMobile] = useState(false);
   const colors: Record<string, string> = {
-    'Linux AMD64': '#FF6B6B',
-    'Linux ARM64': '#4ECDC4',
-    'macOS ARM64': '#45B7D1',
-    'macOS Intel': '#96CEB4',
-    'Windows x86': '#9B5DE5',
+    'Linux amd64': '#FF6B6B',
+    'Linux arm64': '#4ECDC4',
+    'macOS arm64': '#45B7D1',
+    'macOS x64': '#96CEB4',
+    'Windows ia32': '#9B5DE5',
     'Windows x64': '#F7D794',
   };
 
@@ -93,19 +93,19 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
 
       release.assets.forEach((asset) => {
         if (asset.name.endsWith('amd64.deb')) {
-          data['Linux AMD64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
+          data['Linux amd64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
         }
         else if (asset.name.endsWith('arm64.deb')) {
-          data['Linux ARM64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
+          data['Linux arm64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
         }
         else if (asset.name.endsWith('arm64.dmg')) {
-          data['macOS ARM64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
+          data['macOS arm64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
         }
         else if (asset.name.endsWith('x64.dmg')) {
-          data['macOS Intel'] = Number((asset.size / (1024 * 1024)).toFixed(2));
+          data['macOS x64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
         }
         else if (asset.name.endsWith('ia32.exe')) {
-          data['Windows x86'] = Number((asset.size / (1024 * 1024)).toFixed(2));
+          data['Windows ia32'] = Number((asset.size / (1024 * 1024)).toFixed(2));
         }
         else if (asset.name.endsWith('x64.exe')) {
           data['Windows x64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
