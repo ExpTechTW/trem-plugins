@@ -1,6 +1,6 @@
 {
     "name": "radar",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": {
       "zh_tw": "顯示雷達回波圖",
       "zh-Hant": "顯示雷達回波圖"
@@ -9,7 +9,7 @@
       "bamboo0403"
     ],
     "dependencies": {
-      "trem": ">=3.1.1-rc.2"
+      "trem": ">=3.1.1"
     },
     "resources": [
     ],
