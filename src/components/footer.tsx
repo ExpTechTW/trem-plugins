@@ -18,7 +18,7 @@ export default function AppFooter() {
         md:flex-row
       `}
       >
-        <div>&copy; 2024 ExpTech Ltd.</div>
+        <div>&copy; 2025 ExpTech Ltd.</div>
         {lastUpdateTime != 0 && (
           <div>
             所有數據更新於
