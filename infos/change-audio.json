@@ -1,0 +1,18 @@
+{
+  "name": "change-audio",
+  "version": "1.0.3",
+    "description": {
+      "zh_tw": "自訂提示音效"
+    },
+    "author": [
+      "Yoyo0901"
+    ],
+    "dependencies": {
+      "trem": ">=3.1.1",
+      "config": ">=1.0.4"
+    },
+    "resources": [
+      "AGPL-3.0"
+    ],
+    "link": "https://github.com/ExpTechTW/trem-change-audio-plugin"
+  }
