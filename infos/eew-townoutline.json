@@ -1,0 +1,13 @@
+{
+  "name": "eew-townoutline",
+  "version": "1.0.0",
+  "description": {
+    "zh_tw": "EEW 期間顯示鄉鎮界線"
+  },
+  "author": ["bamboo0403"],
+  "dependencies": {
+    "trem": ">=3.1.4"
+  },
+  "resources": [""],
+  "link": "https://github.com/ExpTechTW/trem-eew-townoutline-plugin"
+}
