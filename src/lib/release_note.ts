@@ -34,6 +34,7 @@ const emojiMap: Record<string, string> = {
   ':electric_plug:': '🔌',
   ':lady_beetle:': '🐞',
   ':tools:': '🛠️',
+  ':warning:': '⚠️',
 };
 
 function convertEmoji(text: string): string {
