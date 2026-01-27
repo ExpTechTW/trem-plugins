@@ -38,9 +38,11 @@ interface DownloadStats {
 
 const CACHE_DURATION = 1000 * 60 * 60;
 const EXCLUDED_ASSET_EXTENSIONS = ['.blockmap', '.yml'] as const;
+const EXCLUDED_ASSET_SUFFIXES = ['arm64.zip', 'x64.zip', 'win.exe'] as const;
 
 const shouldDisplayAsset = (assetName: string) =>
-  !EXCLUDED_ASSET_EXTENSIONS.some((ext) => assetName.toLowerCase().endsWith(ext));
+  !EXCLUDED_ASSET_EXTENSIONS.some((ext) => assetName.toLowerCase().endsWith(ext))
+  && !EXCLUDED_ASSET_SUFFIXES.some((suffix) => assetName.toLowerCase().endsWith(suffix));
 
 const formatFileSize = (bytes: number): string => {
   const mb = bytes / (1024 * 1024);
