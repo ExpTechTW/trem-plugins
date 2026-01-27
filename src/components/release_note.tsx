@@ -65,11 +65,43 @@ const ReleaseNotes = ({ releases, releaseContent, initialVersion }: ReleaseNotes
           [&_img]:my-0 [&_img]:inline
           [&_p]:whitespace-pre-line
           dark:prose-invert
+          prose-code:before:content-none prose-code:after:content-none
         `}
         >
           <ReactMarkdown
             rehypePlugins={[rehypeRaw]}
             components={{
+              code: ({ children, className, ...props }) => {
+                let rawText = '';
+                if (Array.isArray(children)) {
+                  rawText = children.map((child) => (typeof child === 'string' ? child : '')).join('');
+                }
+                else if (typeof children === 'string') {
+                  rawText = children;
+                }
+                const isProbablyBlock = rawText.includes('\n');
+
+                if (!isProbablyBlock) {
+                  return (
+                    <code
+                      {...props}
+                      className={`
+                        rounded bg-muted px-1 py-0.5 font-mono text-[0.9em]
+                        text-foreground
+                        before:content-none after:content-none
+                      `}
+                    >
+                      {children}
+                    </code>
+                  );
+                }
+
+                return (
+                  <code {...props} className={className}>
+                    {children}
+                  </code>
+                );
+              },
               img: ({ ...props }) => (
                 <img
                   {...props}
