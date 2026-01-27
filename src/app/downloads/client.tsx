@@ -37,6 +37,10 @@ interface DownloadStats {
 }
 
 const CACHE_DURATION = 1000 * 60 * 60;
+const EXCLUDED_ASSET_EXTENSIONS = ['.blockmap', '.yml'] as const;
+
+const shouldDisplayAsset = (assetName: string) =>
+  !EXCLUDED_ASSET_EXTENSIONS.some((ext) => assetName.toLowerCase().endsWith(ext));
 
 const formatFileSize = (bytes: number): string => {
   const mb = bytes / (1024 * 1024);
@@ -274,6 +278,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
   const currentRelease = releases.find((r) => r.tag_name === selectedVersion);
   const downloadLink = currentRelease ? getDownloadLink(currentRelease, systemInfo) : null;
   const stats = calculateStats();
+  const displayAssets = currentRelease?.assets.filter((asset) => shouldDisplayAsset(asset.name)) ?? [];
 
   if (loading) {
     return (
@@ -462,7 +467,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
               >
                 <h3 className="mb-3 text-lg font-semibold">所有檔案</h3>
                 <div className="space-y-2">
-                  {currentRelease.assets.map((asset) => (
+                  {displayAssets.map((asset) => (
                     <div
                       key={asset.name}
                       className={`
