@@ -114,7 +114,7 @@ const getSystemLabel = (systemInfo: SystemInfo): string => {
       unknown: '未知系統',
     },
     linux: {
-      x64: 'Linux (amd64)',
+      x64: 'Linux (x86_64)',
       arm64: 'Linux (arm64)',
       i32: '未知系統',
       unknown: '未知系統',
