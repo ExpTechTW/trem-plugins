@@ -15,7 +15,7 @@ interface Release {
 
 interface ChartData {
   'version': string;
-  'Linux amd64'?: number;
+  'Linux x86_64'?: number;
   'Linux arm64'?: number;
   'macOS arm64'?: number;
   'macOS x64'?: number;
@@ -62,7 +62,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
   const [isMobile, setIsMobile] = useState(false);
   const colors: Record<string, string> = {
-    'Linux amd64': '#FF6B6B',
+    'Linux x86_64': '#FF6B6B',
     'Linux arm64': '#4ECDC4',
     'macOS arm64': '#45B7D1',
     'macOS x64': '#96CEB4',
@@ -92,8 +92,8 @@ const PackageSizeChart: React.FC<PackageSizeChartProps> = ({ releases }) => {
       };
 
       release.assets.forEach((asset) => {
-        if (asset.name.endsWith('amd64.deb')) {
-          data['Linux amd64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
+        if (asset.name.endsWith('x86_64.deb')) {
+          data['Linux x86_64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
         }
         else if (asset.name.endsWith('arm64.deb')) {
           data['Linux arm64'] = Number((asset.size / (1024 * 1024)).toFixed(2));
