@@ -141,7 +141,7 @@ const getDownloadLink = (release: GithubRelease, systemInfo: SystemInfo) => {
     fileExtension = systemInfo.arch === 'arm64' ? 'arm64.dmg' : 'x64.dmg';
   }
   else if (systemInfo.os === 'linux') {
-    fileExtension = systemInfo.arch === 'arm64' ? 'arm64.deb' : 'amd64.deb';
+    fileExtension = systemInfo.arch === 'arm64' ? 'arm64.deb' : 'x86_64.deb';
   }
   else if (systemInfo.os === 'windows') {
     fileExtension = systemInfo.arch === 'x64' ? 'x64.exe' : 'ia32.exe';
