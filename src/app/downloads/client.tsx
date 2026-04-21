@@ -61,6 +61,19 @@ const formatDate = (dateString: string): string => {
   });
 };
 
+const detectMacArch = (): 'arm64' | 'x64' => {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
+    if (!gl) return 'x64';
+    const extensions = gl.getSupportedExtensions() ?? [];
+    return extensions.includes('WEBGL_compressed_texture_etc') ? 'arm64' : 'x64';
+  }
+  catch {
+    return 'x64';
+  }
+};
+
 const getSystemInfo = (): SystemInfo => {
   if (typeof window === 'undefined') {
     return { os: 'unknown', arch: 'unknown' };
@@ -85,7 +98,7 @@ const getSystemInfo = (): SystemInfo => {
   }
   else if (platform.includes('mac')) {
     os = 'mac';
-    arch = navigator.userAgent.includes('Mac') && navigator.userAgent.includes('Apple') ? 'arm64' : 'x64';
+    arch = detectMacArch();
   }
   else if (platform.includes('win')) {
     os = 'windows';
@@ -141,7 +154,7 @@ const getDownloadLink = (release: GithubRelease, systemInfo: SystemInfo) => {
     fileExtension = systemInfo.arch === 'arm64' ? 'arm64.dmg' : 'x64.dmg';
   }
   else if (systemInfo.os === 'linux') {
-    fileExtension = systemInfo.arch === 'arm64' ? 'arm64.deb' : 'x86_64.deb';
+    fileExtension = systemInfo.arch === 'arm64' ? 'arm64.AppImage' : 'x86_64.AppImage';
   }
   else if (systemInfo.os === 'windows') {
     fileExtension = systemInfo.arch === 'x64' ? 'x64.exe' : 'ia32.exe';
