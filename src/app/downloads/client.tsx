@@ -74,7 +74,35 @@ const detectMacArch = (): 'arm64' | 'x64' => {
   }
 };
 
-const getSystemInfo = (): SystemInfo => {
+interface UserAgentData {
+  getHighEntropyValues: (hints: string[]) => Promise<{ architecture?: string; bitness?: string }>;
+}
+
+const getUserAgentData = (): UserAgentData | undefined =>
+  (navigator as Navigator & { userAgentData?: UserAgentData }).userAgentData;
+
+const detectLinuxArch = async (platform: string, userAgent: string): Promise<'arm64' | 'x64'> => {
+  const uaData = getUserAgentData();
+  if (uaData?.getHighEntropyValues) {
+    try {
+      const data = await uaData.getHighEntropyValues(['architecture']);
+      if (data.architecture === 'arm') return 'arm64';
+      if (data.architecture === 'x86') return 'x64';
+    }
+    catch {
+      console.error('Failed to detect Linux architecture');
+    }
+  }
+
+  const isArm = platform.includes('aarch64')
+    || platform.includes('arm')
+    || userAgent.includes('aarch64')
+    || userAgent.includes('arm64')
+    || userAgent.includes('armv');
+  return isArm ? 'arm64' : 'x64';
+};
+
+const getSystemInfo = async (): Promise<SystemInfo> => {
   if (typeof window === 'undefined') {
     return { os: 'unknown', arch: 'unknown' };
   }
@@ -106,7 +134,7 @@ const getSystemInfo = (): SystemInfo => {
   }
   else if (platform.includes('linux')) {
     os = 'linux';
-    arch = userAgent.includes('arm64') || userAgent.includes('aarch64') ? 'arm64' : 'x64';
+    arch = await detectLinuxArch(platform, userAgent);
   }
 
   return { os, arch };
@@ -218,8 +246,7 @@ export default function DownloadsPage({ initialVersion }: { initialVersion: stri
   }, [selectedVersion]);
 
   useEffect(() => {
-    const detected = getSystemInfo();
-    setSystemInfo(detected);
+    void getSystemInfo().then(setSystemInfo);
 
     const getFirstStableVersion = (releases: GithubRelease[]): string => {
       const targetVersion = releases.find((r) => r.tag_name.includes(initialVersion));
